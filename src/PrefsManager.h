@@ -261,6 +261,7 @@ public:
 	Preference<bool>	m_bCelShadeModels;
 	Preference<bool>	m_bPreferredSortUsesGroups;
 	Preference<float>	m_fDebounceCoinInputTime; // allow users to apply a distinct debounce to coin input
+	Preference<bool>	m_bBothAtOnce;
 
 	// Number of seconds it takes for a button on the controller to release
 	// after pressed.

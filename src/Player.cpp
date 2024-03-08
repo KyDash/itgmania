@@ -978,6 +978,15 @@ void Player::Update( float fDeltaTime )
 
 		bool bIsHoldingButton= INPUTMAPPER->IsBeingPressed(GameI);
 
+		if (PREFSMAN->m_bBothAtOnce) {
+			FOREACH_EnabledPlayer(p) {
+				std::vector<GameInput> GameIA;
+				GAMESTATE->GetCurrentStyle(p)->StyleInputToGameInput(col, p, GameIA);
+				if (INPUTMAPPER->IsBeingPressed(GameIA))
+					bIsHoldingButton = true;
+			}
+		}
+
 		// TODO: Make this work for non-human-controlled players
 		if( bIsHoldingButton && !GAMESTATE->m_bDemonstrationOrJukebox && m_pPlayerState->m_PlayerController==PC_HUMAN )
 			if( m_pNoteField )
@@ -1350,6 +1359,15 @@ void Player::UpdateHoldNotes( int iSongRow, float fDeltaTime, std::vector<TrackR
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)->StyleInputToGameInput( iTrack, pn, GameI );
 
 				bIsHoldingButton &= INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp);
+
+				if (PREFSMAN->m_bBothAtOnce) {
+					FOREACH_EnabledPlayer(p) {
+						std::vector<GameInput> GameIA;
+						GAMESTATE->GetCurrentStyle(p)->StyleInputToGameInput(iTrack, p, GameIA);
+						if (INPUTMAPPER->IsBeingPressed(GameIA, m_pPlayerState->m_mp))
+							bIsHoldingButton = true;
+					}
+				}
 			}
 		}
 	}
@@ -2889,12 +2907,38 @@ void Player::CrossedRows( int iLastRowCrossed, const RageTimer &now )
 								Step(iTrack, -1, now - PREFSMAN->m_fPadStickSeconds, true, false);
 							}
 						}
+
+						if (PREFSMAN->m_bBothAtOnce) {
+							FOREACH_EnabledPlayer(p) {
+								std::vector<GameInput> GameIA;
+								GAMESTATE->GetCurrentStyle(p)->StyleInputToGameInput(iTrack, p, GameIA);
+								for (std::size_t i = 0; i < GameIA.size(); ++i)
+								{
+									float fSecsHeld = INPUTMAPPER->GetSecsHeld(GameIA[i], m_pPlayerState->m_mp);
+									if (fSecsHeld >= PREFSMAN->m_fPadStickSeconds)
+									{
+										Step(iTrack, -1, now - PREFSMAN->m_fPadStickSeconds, true, false);
+									}
+								}
+							}
+						}
 					}
 					else
 					{
 						if(INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp))
 						{
 							Step(iTrack, -1, now, true, false);
+						}
+
+						if (PREFSMAN->m_bBothAtOnce) {
+							FOREACH_EnabledPlayer(p) {
+								std::vector<GameInput> GameIA;
+								GAMESTATE->GetCurrentStyle(p)->StyleInputToGameInput(iTrack, p, GameIA);
+								if (INPUTMAPPER->IsBeingPressed(GameIA, m_pPlayerState->m_mp))
+								{
+									Step(iTrack, -1, now, true, false);
+								}
+							}
 						}
 					}
 				}
@@ -2917,10 +2961,36 @@ void Player::CrossedRows( int iLastRowCrossed, const RageTimer &now )
 							Step( iTrack, -1, now - PREFSMAN->m_fPadStickSeconds, true, false );
 						}
 					}
+
+					if (PREFSMAN->m_bBothAtOnce) {
+						FOREACH_EnabledPlayer(p) {
+							std::vector<GameInput> GameIA;
+							GAMESTATE->GetCurrentStyle(p)->StyleInputToGameInput(iTrack, p, GameIA);
+							for (std::size_t i = 0; i < GameIA.size(); ++i)
+							{
+								float fSecsHeld = INPUTMAPPER->GetSecsHeld(GameIA[i], m_pPlayerState->m_mp);
+								if (fSecsHeld >= PREFSMAN->m_fPadStickSeconds)
+								{
+									Step(iTrack, -1, now - PREFSMAN->m_fPadStickSeconds, true, false);
+								}
+							}
+						}
+					}
 				}
 				else if(INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp))
 				{
 					Step( iTrack, iRow, now, true, false );
+
+					if (PREFSMAN->m_bBothAtOnce) {
+						FOREACH_EnabledPlayer(p) {
+							std::vector<GameInput> GameIA;
+							GAMESTATE->GetCurrentStyle(p)->StyleInputToGameInput(iTrack, p, GameIA);
+							if (INPUTMAPPER->IsBeingPressed(GameIA, m_pPlayerState->m_mp))
+							{
+								Step(iTrack, iRow, now, true, false);
+							}
+						}
+					}
 				}
 				break;
 			}

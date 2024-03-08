@@ -591,6 +591,7 @@ static LocalizedString VISUAL_DELAY_UP		( "ScreenDebugOverlay", "Visual Delay Up
 static LocalizedString VISUAL_DELAY_DOWN	( "ScreenDebugOverlay", "Visual Delay Down" );
 static LocalizedString VOLUME_UP		( "ScreenDebugOverlay", "Volume Up" );
 static LocalizedString VOLUME_DOWN		( "ScreenDebugOverlay", "Volume Down" );
+static LocalizedString BOTH_AT_ONCE		("ScreenDebugOverlay", "Both at Once");
 static LocalizedString UPTIME			( "ScreenDebugOverlay", "Uptime" );
 static LocalizedString FORCE_CRASH		( "ScreenDebugOverlay", "Force Crash" );
 static LocalizedString SLOW			( "ScreenDebugOverlay", "Slow" );
@@ -1314,6 +1315,21 @@ class DebugLineForceCrash : public IDebugLine
 	virtual RString GetDisplayValue() { return RString(); }
 	virtual bool IsEnabled() { return false; }
 	virtual void DoAndLog( RString &sMessageOut ) { FAIL_M("DebugLineCrash"); }
+};
+
+class DebugLineBothAtOnce : public IDebugLine
+{
+	virtual RString GetDisplayTitle() { return BOTH_AT_ONCE.GetValue(); }
+	virtual RString GetDisplayValue()
+	{
+		switch (PREFSMAN->m_bBothAtOnce)
+		{
+		case false:	return OFF.GetValue();	break;
+		case true:	return ON.GetValue();	break;
+		}
+	}
+	virtual bool IsEnabled() { return PREFSMAN->m_bBothAtOnce; }
+	virtual void DoAndLog(RString& sMessageOut) {}
 };
 
 class DebugLineUptime : public IDebugLine

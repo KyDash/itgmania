@@ -566,7 +566,7 @@ void ScreenGameplay::Init()
 	FOREACH_EnabledPlayerInfo( m_vPlayerInfo, pi )
 	{
 		RString sName = ssprintf("Player%s", pi->GetName().c_str());
-		pi->m_pPlayer->SetName( sName );
+		pi->m_pPlayer->SetName( sName ); //
 
 		Style const* style= GAMESTATE->GetCurrentStyle(pi->m_pn);
 		float style_width= style->GetWidth(pi->m_pn);
@@ -2520,19 +2520,39 @@ bool ScreenGameplay::Input( const InputEventPlus &input )
 
 			if( GamePreferences::m_AutoPlay == PC_HUMAN && GAMESTATE->m_pPlayerState[input.pn]->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay == 0 )
 			{
-				PlayerInfo& pi = GetPlayerInfoForInput( input );
+				if (!PREFSMAN->m_bBothAtOnce) {
+					PlayerInfo& pi = GetPlayerInfoForInput(input);
 
-				ASSERT( input.GameI.IsValid() );
+					ASSERT(input.GameI.IsValid());
 
-				GameButtonType gbt = GAMESTATE->m_pCurGame->GetPerButtonInfo(input.GameI.button)->m_gbt;
-				switch( gbt )
-				{
-				case GameButtonType_Menu:
-					return false;
-				case GameButtonType_Step:
-					if( iCol != -1 )
-						pi.m_pPlayer->Step( iCol, -1, input.DeviceI.ts, false, bRelease );
-					return true;
+					GameButtonType gbt = GAMESTATE->m_pCurGame->GetPerButtonInfo(input.GameI.button)->m_gbt;
+					switch (gbt)
+					{
+					case GameButtonType_Menu:
+						return false;
+					case GameButtonType_Step:
+						if (iCol != -1)
+							pi.m_pPlayer->Step(iCol, -1, input.DeviceI.ts, false, bRelease);
+						return true;
+					}
+				}
+				else{
+					ASSERT(input.GameI.IsValid());
+
+					GameButtonType gbt = GAMESTATE->m_pCurGame->GetPerButtonInfo(input.GameI.button)->m_gbt;
+					switch (gbt)
+					{
+					case GameButtonType_Menu:
+						return false;
+					case GameButtonType_Step:
+						if (iCol != -1) {
+							FOREACH_EnabledPlayer(p) {
+								PlayerInfo& pi = m_vPlayerInfo[p];
+								pi.m_pPlayer->Step(iCol, -1, input.DeviceI.ts, false, bRelease);
+							}
+						}
+						return true;
+					}
 				}
 			}
 		}

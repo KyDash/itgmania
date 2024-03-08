@@ -384,6 +384,7 @@ void ScreenOptionsEditCourse::SetCurrentSong()
 	{
 		GAMESTATE->m_pCurSong.Set(nullptr);
 		GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
+		GAMESTATE->m_pCurSteps[PLAYER_2].Set(nullptr);
 	}
 	else
 	{
@@ -417,11 +418,13 @@ void ScreenOptionsEditCourse::SetCurrentSteps()
 		const EditCourseOptionRowHandlerSteps *pHand = dynamic_cast<const EditCourseOptionRowHandlerSteps *>( row.GetHandler() );
 		ASSERT( pHand != nullptr );
 		Steps *pSteps = pHand->GetSteps( iStepsIndex );
-		GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
+		GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+		GAMESTATE->m_pCurSteps[PLAYER_2].Set( pSteps );
 	}
 	else
 	{
 		GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
+		GAMESTATE->m_pCurSteps[PLAYER_2].Set(nullptr);
 	}
 }
 

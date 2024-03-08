@@ -378,6 +378,7 @@ protected:
 // for MODE_PLAY
 	void SetupCourseAttacks();
 	PlayerPlus		m_Player;
+	PlayerPlus		m_PlayerExtra;
 	Background		m_Background;
 	Foreground		m_Foreground;
 	bool			m_bReturnToRecordMenuAfterPlay;

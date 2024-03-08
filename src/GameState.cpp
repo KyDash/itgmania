@@ -3299,6 +3299,7 @@ public:
 		{
 			p->m_pCurSong.Set(song);
 			p->m_pCurSteps[PLAYER_1].Set(steps);
+			p->m_pCurSteps[PLAYER_2].Set(steps);
 			p->SetCurrentStyle(GAMEMAN->GetEditorStyleForStepsType(
 					steps->m_StepsType), PLAYER_INVALID);
 			p->m_pCurCourse.Set(nullptr);
@@ -3326,6 +3327,7 @@ public:
 		song->AddSteps(new_steps);
 		p->m_pCurSong.Set(song);
 		p->m_pCurSteps[PLAYER_1].Set(steps);
+		p->m_pCurSteps[PLAYER_2].Set(steps);
 		p->SetCurrentStyle(GAMEMAN->GetEditorStyleForStepsType(
 				steps->m_StepsType), PLAYER_INVALID);
 		p->m_pCurCourse.Set(nullptr);

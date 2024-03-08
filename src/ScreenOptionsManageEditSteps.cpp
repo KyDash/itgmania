@@ -182,6 +182,7 @@ void ScreenOptionsManageEditSteps::HandleScreenMessage( const ScreenMessage SM )
 			FILEMAN->Remove( pSteps->GetFilename() );
 			SONGMAN->DeleteSteps( pSteps );
 			GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
+			GAMESTATE->m_pCurSteps[PLAYER_2].Set(nullptr);
 			SCREENMAN->SetNewScreen( this->m_sName ); // reload
 		}
 	}
@@ -196,7 +197,8 @@ void ScreenOptionsManageEditSteps::HandleScreenMessage( const ScreenMessage SM )
 					Steps *pSteps = GetStepsWithFocus();
 					Song *pSong = pSteps->m_pSong;
 					GAMESTATE->m_pCurSong.Set( pSong );
-					GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
+					GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+					GAMESTATE->m_pCurSteps[PLAYER_2].Set( pSteps );
 
 					ScreenOptions::BeginFadingOut();
 				}
@@ -237,7 +239,8 @@ void ScreenOptionsManageEditSteps::AfterChangeRow( PlayerNumber pn )
 	Song *pSong = pSteps ? pSteps->m_pSong : nullptr;
 
 	GAMESTATE->m_pCurSong.Set( pSong );
-	GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
+	GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+	GAMESTATE->m_pCurSteps[PLAYER_2].Set( pSteps );
 
 	ScreenOptions::AfterChangeRow( pn );
 }

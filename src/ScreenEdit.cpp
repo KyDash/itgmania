@@ -1427,6 +1427,7 @@ void ScreenEdit::Init()
 	FOREACH_PlayerNumber( p )
 		GAMESTATE->m_bSideIsJoined[p] = false;
 	GAMESTATE->m_bSideIsJoined[PLAYER_1] = true;
+	GAMESTATE->m_bSideIsJoined[PLAYER_2] = true;
 
 	m_pSong = GAMESTATE->m_pCurSong;
 	m_pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
@@ -1530,9 +1531,18 @@ void ScreenEdit::Init()
 	m_Player->Init( "Player", GAMESTATE->m_pPlayerState[PLAYER_1], nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
 	m_Player->CacheAllUsedNoteSkins();
 	GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_HUMAN;
-	m_Player->SetXY( PLAYER_X, PLAYER_Y );
+	m_Player->SetXY( SCREEN_WIDTH * 0.25f, PLAYER_Y );
 	m_Player->SetZoom( SCREEN_HEIGHT/480 );
+	m_Player->SetName( "PlayerP1" );
 	this->AddChild( m_Player );
+
+	m_PlayerExtra->Init( "Player", GAMESTATE->m_pPlayerState[PLAYER_2], nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
+	m_PlayerExtra->CacheAllUsedNoteSkins();
+	GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = PC_HUMAN;
+	m_PlayerExtra->SetXY( SCREEN_WIDTH * 0.75f, PLAYER_Y );
+	m_PlayerExtra->SetZoom( SCREEN_HEIGHT / 480 );
+	m_PlayerExtra->SetName( "PlayerP2" );
+	this->AddChild( m_PlayerExtra );
 
 	this->AddChild( &m_Foreground );
 
@@ -2489,7 +2499,9 @@ bool ScreenEdit::InputEdit( const InputEventPlus &input, EditButton EditB )
 			}
 
 			pSteps = *it;
-			GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
+			GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+			GAMESTATE->m_pCurSteps[PLAYER_2].Set( pSteps );
+
 			m_pSteps = pSteps;
 			pSteps->GetNoteData( m_NoteDataEdit );
 
@@ -2658,6 +2670,7 @@ bool ScreenEdit::InputEdit( const InputEventPlus &input, EditButton EditB )
 			if (GAMESTATE->m_bIsUsingStepTiming)
 			{
 				GAMESTATE->m_pCurSteps[PLAYER_1]->m_Attacks.UpdateStartTimes(fDelta);
+				GAMESTATE->m_pCurSteps[PLAYER_2]->m_Attacks.UpdateStartTimes(fDelta);
 			}
 			else
 			{
@@ -2954,7 +2967,8 @@ bool ScreenEdit::InputEdit( const InputEventPlus &input, EditButton EditB )
 			}
 			g_fLastInsertAttackPositionSeconds = fStart;
 			g_fLastInsertAttackDurationSeconds = fEnd - fStart;
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign( ModsLevel_Stage, po );
+			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign(ModsLevel_Stage, po);
+			GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerOptions.Assign( ModsLevel_Stage, po );
 			SCREENMAN->AddNewScreenToTop( SET_MOD_SCREEN, SM_BackFromInsertCourseAttackPlayerOptions );
 
 		}
@@ -3247,8 +3261,11 @@ bool ScreenEdit::InputPlay( const InputEventPlus &input, EditButton EditB )
 				switch( gbt )
 				{
 				case GameButtonType_Step:
-					if( iCol != -1 )
-						m_Player->Step( iCol, -1, input.DeviceI.ts, false, bRelease );
+					if (iCol != -1)
+					{
+						m_Player->Step(iCol, -1, input.DeviceI.ts, false, bRelease);
+						m_PlayerExtra->Step( iCol, -1, input.DeviceI.ts, false, bRelease );
+					}
 					return true;
 				default:
 					break;
@@ -3347,7 +3364,10 @@ void ScreenEdit::TransitionEditState( EditState em )
 		case STATE_PLAYING:
 			AdjustSync::HandleSongEnd();
 			if (!GAMESTATE->m_bIsUsingStepTiming)
+			{
 				GAMESTATE->m_pCurSteps[PLAYER_1]->m_Timing = backupStepTiming;
+				GAMESTATE->m_pCurSteps[PLAYER_2]->m_Timing = backupStepTiming;
+			}
 			if( AdjustSync::IsSyncDataChanged() )
 				ScreenSaveSync::PromptSaveSync();
 			break;
@@ -3355,7 +3375,10 @@ void ScreenEdit::TransitionEditState( EditState em )
 		case STATE_RECORDING:
 			SetDirty( true );
 			if (!GAMESTATE->m_bIsUsingStepTiming)
+			{
 				GAMESTATE->m_pCurSteps[PLAYER_1]->m_Timing = backupStepTiming;
+				GAMESTATE->m_pCurSteps[PLAYER_2]->m_Timing = backupStepTiming;
+			}
 			SaveUndo();
 
 			// delete old TapNotes in the range
@@ -3375,11 +3398,14 @@ void ScreenEdit::TransitionEditState( EditState em )
 	{
 		// Stop displaying course attacks, if any.
 		GAMESTATE->m_pPlayerState[PLAYER_1]->RemoveActiveAttacks();
+		GAMESTATE->m_pPlayerState[PLAYER_2]->RemoveActiveAttacks();
 		// Load the player's default PlayerOptions.
 		GAMESTATE->m_pPlayerState[PLAYER_1]->RebuildPlayerOptionsFromActiveAttacks();
+		GAMESTATE->m_pPlayerState[PLAYER_2]->RebuildPlayerOptionsFromActiveAttacks();
 
 		// Snap to current options.
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.SetCurrentToLevel( ModsLevel_Stage );
+		GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerOptions.SetCurrentToLevel(ModsLevel_Stage);
 	}
 
 	switch( em )
@@ -3415,6 +3441,7 @@ void ScreenEdit::TransitionEditState( EditState em )
 			// preview if we're in song mode
 			backupStepTiming = GAMESTATE->m_pCurSteps[PLAYER_1]->m_Timing;
 			GAMESTATE->m_pCurSteps[PLAYER_1]->m_Timing.Clear();
+			GAMESTATE->m_pCurSteps[PLAYER_2]->m_Timing.Clear();
 		}
 
 		/* Reset the note skin, in case preferences have changed. */
@@ -3436,19 +3463,28 @@ void ScreenEdit::TransitionEditState( EditState em )
 		SetupCourseAttacks();
 
 		m_Player.Load( m_NoteDataEdit );
+		m_PlayerExtra.Load( m_NoteDataEdit );
 
-		if( GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0 )
+		if (GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.GetCurrent().m_fPlayerAutoPlay != 0)
+		{
 			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_AUTOPLAY;
+			GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = PC_AUTOPLAY;
+		}
 		else
+		{
 			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = GamePreferences::m_AutoPlay;
+			GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = GamePreferences::m_AutoPlay;
+		}
 
 		if( g_bEditorShowBGChangesPlay )
 		{
 			/* FirstBeat affects backgrounds, so commit changes to memory (not to disk)
 			 * and recalc it. */
 			Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+			Steps* pStepsExtra = GAMESTATE->m_pCurSteps[PLAYER_2];
 			ASSERT( pSteps != nullptr );
-			pSteps->SetNoteData( m_NoteDataEdit );
+			pSteps->SetNoteData(m_NoteDataEdit);
+			pStepsExtra->SetNoteData( m_NoteDataEdit );
 			m_pSong->ReCalculateRadarValuesAndLastSecond();
 
 			m_Background.Unload();
@@ -3490,6 +3526,7 @@ void ScreenEdit::TransitionEditState( EditState em )
 	m_NoteFieldEdit.SetVisible( em == STATE_EDITING );
 	m_NoteFieldRecord.SetVisible( em == STATE_RECORDING  ||  em == STATE_RECORDING_PAUSED );
 	m_Player->SetVisible( em == STATE_PLAYING );
+	m_PlayerExtra->SetVisible( em == STATE_PLAYING );
 	m_Foreground.SetVisible( g_bEditorShowBGChangesPlay  &&  em != STATE_EDITING );
 
 	switch( em )
@@ -3685,6 +3722,7 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 	{
 		int i = StringToInt( ScreenTextEntry::s_sLastAnswer );
 		GAMESTATE->m_pCurSteps[PLAYER_1]->SetMeter(i);
+		GAMESTATE->m_pCurSteps[PLAYER_2]->SetMeter(i);
 		SetDirty( true );
 	}
 	else if( SM == SM_BackFromBeat0Change && !ScreenTextEntry::s_bCancelledLast )
@@ -3699,6 +3737,7 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 		if (GAMESTATE->m_bIsUsingStepTiming)
 		{
 			GAMESTATE->m_pCurSteps[PLAYER_1]->m_Attacks.UpdateStartTimes(delta);
+			GAMESTATE->m_pCurSteps[PLAYER_2]->m_Attacks.UpdateStartTimes(delta);
 		}
 		else
 		{
@@ -3955,6 +3994,7 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 		// The options may have changed the note skin.
 		m_NoteFieldRecord.CacheAllUsedNoteSkins();
 		m_Player->CacheAllUsedNoteSkins();
+		m_PlayerExtra->CacheAllUsedNoteSkins();
 
 		// stop any music that screen may have been playing
 		SOUND->StopMusic();
@@ -4227,7 +4267,8 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 			if( iAttack >= 0 )
 				po.FromString( ce.attacks[iAttack].sModifiers );
 
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign( ModsLevel_Preferred, po );
+			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerOptions.Assign(ModsLevel_Preferred, po);
+			GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerOptions.Assign( ModsLevel_Preferred, po );
 			SCREENMAN->AddNewScreenToTop( SET_MOD_SCREEN, SM_BackFromInsertCourseAttackPlayerOptions );
 		}
 	}
@@ -4411,8 +4452,11 @@ void ScreenEdit::HandleScreenMessage( const ScreenMessage SM )
 			pSong->DeleteSteps( pSteps );
 			if( m_pSteps == pSteps )
 				m_pSteps = nullptr;
-			if( GAMESTATE->m_pCurSteps[PLAYER_1].Get() == pSteps )
+			if (GAMESTATE->m_pCurSteps[PLAYER_1].Get() == pSteps)
+			{
 				GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
+				GAMESTATE->m_pCurSteps[PLAYER_2].Set(nullptr);
+			}
 		}
 
 
@@ -4731,10 +4775,12 @@ inline void ScreenEdit::SetBeat(float fBeat)
 	{
 		GAMESTATE->m_Position.m_fSongBeat = fBeat;
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_Position.m_fSongBeat = m_pSteps->GetTimingData()->GetBeatFromElapsedTime(m_pSong->m_SongTiming.GetElapsedTimeFromBeat(fBeat));
+		GAMESTATE->m_pPlayerState[PLAYER_2]->m_Position.m_fSongBeat = m_pSteps->GetTimingData()->GetBeatFromElapsedTime(m_pSong->m_SongTiming.GetElapsedTimeFromBeat(fBeat));
 	}
 	else
 	{
 		GAMESTATE->m_pPlayerState[PLAYER_1]->m_Position.m_fSongBeat = fBeat;
+		GAMESTATE->m_pPlayerState[PLAYER_2]->m_Position.m_fSongBeat = fBeat;
 		GAMESTATE->m_Position.m_fSongBeat = m_pSong->m_SongTiming.GetBeatFromElapsedTime(m_pSteps->GetTimingData()->GetElapsedTimeFromBeat(fBeat));
 	}
 }
@@ -6104,10 +6150,13 @@ void ScreenEdit::SetupCourseAttacks()
 	/* This is the first beat that can be changed without it being visible.  Until
 	 * we draw for the first time, any beat can be changed. */
 	GAMESTATE->m_pPlayerState[PLAYER_1]->m_fLastDrawnBeat = -100;
+	GAMESTATE->m_pPlayerState[PLAYER_2]->m_fLastDrawnBeat = -100;
 
 	// Put course options into effect.
 	GAMESTATE->m_pPlayerState[PLAYER_1]->m_ModsToApply.clear();
+	GAMESTATE->m_pPlayerState[PLAYER_2]->m_ModsToApply.clear();
 	GAMESTATE->m_pPlayerState[PLAYER_1]->RemoveActiveAttacks();
+	GAMESTATE->m_pPlayerState[PLAYER_2]->RemoveActiveAttacks();
 
 
 	if( GAMESTATE->m_pCurCourse )
@@ -6132,8 +6181,11 @@ void ScreenEdit::SetupCourseAttacks()
 			}
 		}
 
-		for (Attack &attack: Attacks)
-			GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack( attack );
+		for (Attack& attack : Attacks)
+		{
+			GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack(attack);
+			GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack(attack);
+		}
 	}
 	else
 	{
@@ -6151,13 +6203,15 @@ void ScreenEdit::SetupCourseAttacks()
 					// LaunchAttack is actually a misnomer.  The function actually adds
 					// the attack to a list in the PlayerState which is checked and
 					// updated every tick to see which ones to actually activate. -Kyz
-					GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack( attack );
+					GAMESTATE->m_pPlayerState[PLAYER_1]->LaunchAttack(attack);
+					GAMESTATE->m_pPlayerState[PLAYER_2]->LaunchAttack( attack );
 				}
 			}
 		}
 	}
 
 	GAMESTATE->m_pPlayerState[PLAYER_1]->RebuildPlayerOptionsFromActiveAttacks();
+	GAMESTATE->m_pPlayerState[PLAYER_2]->RebuildPlayerOptionsFromActiveAttacks();
 }
 
 void ScreenEdit::CopyToLastSave()
@@ -6208,7 +6262,8 @@ void ScreenEdit::RevertFromDisk()
 		pNewSteps->SetDifficulty( id.GetDifficulty() );
 		GAMESTATE->m_pCurSong->AddSteps( pNewSteps );
 	}
-	GAMESTATE->m_pCurSteps[PLAYER_1].Set( pNewSteps );
+	GAMESTATE->m_pCurSteps[PLAYER_1].Set(pNewSteps);
+	GAMESTATE->m_pCurSteps[PLAYER_2].Set( pNewSteps );
 	m_pSteps = pNewSteps;
 
 	CopyToLastSave();

@@ -55,7 +55,8 @@ const char *CodeNames[] = {
 	"BackInEventMode",
 	"CloseCurrentFolder",
 	"PrevOptionsList",
-	"NextOptionsList"
+	"NextOptionsList",
+	"BothAtOnce"
 };
 XToString( Code );
 

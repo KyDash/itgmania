@@ -145,7 +145,7 @@ static const int DANCE_COL_SPACING = 64;
 static const Style g_Style_Dance_Single =
 {	// STYLE_DANCE_SINGLE
 	true,				// m_bUsedForGameplay
-	true,				// m_bUsedForEdit
+	false,				// m_bUsedForEdit
 	true,				// m_bUsedForDemonstration
 	true,				// m_bUsedForHowToPlay
 	"single",			// m_szName
@@ -180,7 +180,7 @@ static const Style g_Style_Dance_Single =
 static const Style g_Style_Dance_Versus =
 {	// STYLE_DANCE_VERSUS
 	true,				// m_bUsedForGameplay
-	false,				// m_bUsedForEdit
+	true,				// m_bUsedForEdit
 	true,				// m_bUsedForDemonstration
 	false,				// m_bUsedForHowToPlay
 	"versus",			// m_szName

@@ -496,6 +496,9 @@ int GetNumCreditsPaid()
 	if( GAMESTATE->GetPremium() == Premium_2PlayersFor1Credit )
 		iNumCreditsPaid = std::min( iNumCreditsPaid, 1 );
 
+	if( PREFSMAN->m_bBothAtOnce )
+		iNumCreditsPaid = std::min( iNumCreditsPaid, 1 );
+
 	return iNumCreditsPaid;
 }
 
@@ -512,6 +515,9 @@ int GetCreditsRequiredToPlayStyle( const Style *style )
 		return 0;
 	}
 	if( GAMESTATE->GetPremium() == Premium_2PlayersFor1Credit )
+		return 1;
+
+	if (PREFSMAN->m_bBothAtOnce)
 		return 1;
 
 	switch( style->m_StyleType )

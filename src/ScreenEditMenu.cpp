@@ -217,8 +217,9 @@ bool ScreenEditMenu::MenuStart( const InputEventPlus & )
 
 	GAMESTATE->m_pCurSong.Set( pSong );
 	GAMESTATE->m_pCurCourse.Set( nullptr );
-	GAMESTATE->SetCurrentStyle( GAMEMAN->GetEditorStyleForStepsType(st), PLAYER_INVALID );
-	GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
+	GAMESTATE->SetCurrentStyle( GAMEMAN->GetEditorStyleForStepsType(st)  , PLAYER_INVALID);
+	GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+	GAMESTATE->m_pCurSteps[PLAYER_2].Set( pSteps );
 
 	// handle error cases
 	if( !pSong->HasMusic() )
@@ -326,7 +327,8 @@ bool ScreenEditMenu::MenuStart( const InputEventPlus & )
 			SCREENMAN->PlayStartSound();
 
 			GAMESTATE->m_pCurSong.Set( pSong );
-			GAMESTATE->m_pCurSteps[PLAYER_1].Set( pSteps );
+			GAMESTATE->m_pCurSteps[PLAYER_1].Set(pSteps);
+			GAMESTATE->m_pCurSteps[PLAYER_2].Set( pSteps );
 			GAMESTATE->m_pCurCourse.Set(nullptr);
 		}
 		break;
