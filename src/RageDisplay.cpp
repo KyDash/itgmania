@@ -24,15 +24,23 @@
 // Statistics stuff
 RageTimer	g_LastCheckTimer;
 int		g_iNumVerts;
-int		g_iFPS, g_iVPF, g_iCFPS;
+int		g_iFPS, g_iVPF, g_iCFPS, g_iDPF, g_iDPS;
+float	g_fFPS, g_fCFPS, g_fMaxFPS, g_fMinFPS;
 
 int RageDisplay::GetFPS() const { return g_iFPS; }
+float RageDisplay::GetFPSFloat() const { return g_fFPS; }
 int RageDisplay::GetVPF() const { return g_iVPF; }
+int RageDisplay::GetDPF() const { return g_iDPF; }
+int RageDisplay::GetDPS() const { return g_iDPS; }
 int RageDisplay::GetCumFPS() const { return g_iCFPS; }
+float RageDisplay::GetCumFPSFloat() const { return g_fCFPS; }
+float RageDisplay::GetMaxFPSFloat() const { return g_fMaxFPS; }
+float RageDisplay::GetMinFPSFloat() const { return g_fMinFPS; }
 
 static int g_iFramesRenderedSinceLastCheck,
 	   g_iFramesRenderedSinceLastReset,
 	   g_iVertsRenderedSinceLastCheck,
+		g_iDrawCountSinceLastCheck,
 	   g_iNumChecksSinceLastReset;
 static RageTimer g_LastFrameEndedAt( RageZeroTimer );
 
@@ -139,11 +147,20 @@ void RageDisplay::ProcessStatsOnFlip()
 	{
 		float fActualTime = g_LastCheckTimer.GetDeltaTime();
 		g_iNumChecksSinceLastReset++;
-		g_iFPS = std::lrint( g_iFramesRenderedSinceLastCheck / fActualTime );
+		g_iFPS = std::lrint(g_iFramesRenderedSinceLastCheck / fActualTime);
+		g_fFPS = (float)g_iFramesRenderedSinceLastCheck / fActualTime;
 		g_iCFPS = g_iFramesRenderedSinceLastReset / g_iNumChecksSinceLastReset;
 		g_iCFPS = std::lrint( g_iCFPS / fActualTime );
+		g_fCFPS = (float)g_iFramesRenderedSinceLastReset / (float)g_iNumChecksSinceLastReset / fActualTime;
 		g_iVPF = g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
-		g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = 0;
+		g_iDPS = g_iDrawCountSinceLastCheck;
+		g_iDPF = g_iDrawCountSinceLastCheck / g_fFPS;
+		g_fMaxFPS = std::max(g_fMaxFPS, g_fFPS);
+		if (g_fMinFPS < 0)
+			g_fMinFPS = g_fFPS;
+
+		g_fMinFPS = std::min(g_fMinFPS, g_fFPS);
+		g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = g_iDrawCountSinceLastCheck = 0;
 		if( LOG_FPS )
 		{
 			RString sStats = GetStats();
@@ -155,21 +172,39 @@ void RageDisplay::ProcessStatsOnFlip()
 
 void RageDisplay::ResetStats()
 {
-	g_iFPS = g_iVPF = 0;
+	g_iFPS = g_iVPF = g_iDPF = g_iDPS = g_fFPS = g_fMaxFPS = 0;
+	g_fMinFPS = -1;
 	g_iFramesRenderedSinceLastCheck = g_iFramesRenderedSinceLastReset = 0;
 	g_iNumChecksSinceLastReset = 0;
 	g_iVertsRenderedSinceLastCheck = 0;
+	g_iDrawCountSinceLastCheck = 0;
 	g_LastCheckTimer.GetDeltaTime();
 }
 
+#include <windows.h>
+#define PSAPI_VERSION 1
+#include <Psapi.h>
+#pragma comment(lib, "psapi.lib")
 RString RageDisplay::GetStats() const
 {
+	#define DIV 1048756
+	PROCESS_MEMORY_COUNTERS pmc;
+	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+	SIZE_T MemUse = pmc.PagefileUsage / DIV - 32;
 	RString s;
 	// If FPS == 0, we don't have stats yet.
 	if( !GetFPS() )
-		s = "-- FPS\n-- av FPS\n-- VPF";
+		s = "-- FPS\n-- av FPS\n-- Max FPS\n-- Min FPS\n-- VPF\n-- DPF\n-- DPS\n-- MB";
 
-	s = ssprintf( "%i FPS\n%i av FPS\n%i VPF", GetFPS(), GetCumFPS(), GetVPF() );
+	float max = GetMaxFPSFloat();
+	float min = GetMinFPSFloat();
+	if (min == -1)
+	{
+		max = 0.0f;
+		min = 0.0f;
+	}
+	//s = ssprintf( "%i FPS\n%i av FPS\n%i VPF", GetFPS(), GetCumFPS(), GetVPF() );
+	s = ssprintf( "%.2f FPS\n%.2f av FPS\n%.2f Max FPS\n%.2f Min FPS\n%i VPF\n%i DPF\n%i DPS\n%i MB", GetFPSFloat(), GetCumFPSFloat(), max, min, GetVPF(), GetDPF(), GetDPS(), MemUse);
 
 //	#if defined(_WINDOWS)
 	s += "\n"+this->GetApiDescription();
@@ -195,7 +230,7 @@ void RageDisplay::BeginConcurrentRendering()
 	this->SetDefaultRenderStates();
 }
 
-void RageDisplay::StatsAddVerts( int iNumVertsRendered ) { g_iVertsRenderedSinceLastCheck += iNumVertsRendered; }
+void RageDisplay::StatsAddVerts(int iNumVertsRendered) { g_iVertsRenderedSinceLastCheck += iNumVertsRendered; ++g_iDrawCountSinceLastCheck; }
 
 /* Draw a line as a quad.  GL_LINES with SmoothLines off can draw line
  * ends at odd angles--they're forced to axis-alignment regardless of the

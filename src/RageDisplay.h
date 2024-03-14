@@ -390,8 +390,14 @@ protected:
 public:
 	// Statistics
 	int GetFPS() const;
+	float GetFPSFloat() const;
+	float GetMaxFPSFloat() const;
+	float GetMinFPSFloat() const;
 	int GetVPF() const;
+	int GetDPF() const;
+	int GetDPS() const;
 	int GetCumFPS() const; // average FPS since last reset
+	float GetCumFPSFloat() const; // average FPS since last reset
 	virtual void ResetStats();
 	virtual void ProcessStatsOnFlip();
 	virtual RString GetStats() const;

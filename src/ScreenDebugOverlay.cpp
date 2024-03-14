@@ -559,7 +559,8 @@ static LocalizedString AUTOSYNC		( "ScreenDebugOverlay", "Autosync" );
 static LocalizedString COIN_MODE		( "ScreenDebugOverlay", "CoinMode" );
 static LocalizedString HALT			( "ScreenDebugOverlay", "Halt" );
 static LocalizedString LIGHTS_DEBUG	( "ScreenDebugOverlay", "Lights Debug" );
-static LocalizedString MONKEY_INPUT	( "ScreenDebugOverlay", "Monkey Input" );
+//static LocalizedString MONKEY_INPUT	( "ScreenDebugOverlay", "Monkey Input" );
+static LocalizedString BOTH_AT_ONCE("ScreenDebugOverlay", "Both at Once");
 static LocalizedString RENDERING_STATS	( "ScreenDebugOverlay", "Rendering Stats" );
 static LocalizedString VSYNC			( "ScreenDebugOverlay", "Vsync" );
 static LocalizedString MULTITEXTURE	( "ScreenDebugOverlay", "Multitexture" );
@@ -591,7 +592,6 @@ static LocalizedString VISUAL_DELAY_UP		( "ScreenDebugOverlay", "Visual Delay Up
 static LocalizedString VISUAL_DELAY_DOWN	( "ScreenDebugOverlay", "Visual Delay Down" );
 static LocalizedString VOLUME_UP		( "ScreenDebugOverlay", "Volume Up" );
 static LocalizedString VOLUME_DOWN		( "ScreenDebugOverlay", "Volume Down" );
-static LocalizedString BOTH_AT_ONCE		("ScreenDebugOverlay", "Both at Once");
 static LocalizedString UPTIME			( "ScreenDebugOverlay", "Uptime" );
 static LocalizedString FORCE_CRASH		( "ScreenDebugOverlay", "Force Crash" );
 static LocalizedString SLOW			( "ScreenDebugOverlay", "Slow" );
@@ -756,7 +756,7 @@ class DebugLineLightsDebug : public IDebugLine
 	}
 };
 
-class DebugLineMonkeyInput : public IDebugLine
+/*class DebugLineMonkeyInput : public IDebugLine
 {
 	virtual RString GetDisplayTitle() { return MONKEY_INPUT.GetValue(); }
 	virtual bool IsEnabled() { return PREFSMAN->m_bMonkeyInput.Get(); }
@@ -765,7 +765,7 @@ class DebugLineMonkeyInput : public IDebugLine
 		PREFSMAN->m_bMonkeyInput.Set( !PREFSMAN->m_bMonkeyInput );
 		IDebugLine::DoAndLog( sMessageOut );
 	}
-};
+};*/
 
 class DebugLineStats : public IDebugLine
 {
@@ -1329,7 +1329,9 @@ class DebugLineBothAtOnce : public IDebugLine
 		}
 	}
 	virtual bool IsEnabled() { return PREFSMAN->m_bBothAtOnce; }
-	virtual void DoAndLog(RString& sMessageOut) {}
+	virtual void DoAndLog(RString& sMessageOut) {
+		PREFSMAN->m_bBothAtOnce.Set(!PREFSMAN->m_bBothAtOnce);
+	}
 };
 
 class DebugLineUptime : public IDebugLine
@@ -1353,7 +1355,8 @@ DECLARE_ONE( DebugLineCoinMode );
 DECLARE_ONE( DebugLineSlow );
 DECLARE_ONE( DebugLineHalt );
 DECLARE_ONE( DebugLineLightsDebug );
-DECLARE_ONE( DebugLineMonkeyInput );
+//DECLARE_ONE( DebugLineMonkeyInput );
+DECLARE_ONE( DebugLineBothAtOnce );
 DECLARE_ONE( DebugLineStats );
 DECLARE_ONE( DebugLineVsync );
 DECLARE_ONE( DebugLineAllowMultitexture );
