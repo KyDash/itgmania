@@ -10,7 +10,7 @@ end
 
 Trace = lua.Trace
 Warn = lua.Warn
-print = Trace
+-- print = Trace
 
 -- Use MersenneTwister in place of math.random and math.randomseed.
 if MersenneTwister then
