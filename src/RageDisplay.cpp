@@ -19,6 +19,32 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <fstream>
+
+#if defined(WIN32)
+#include <windows.h>
+#define PSAPI_VERSION 1
+#include <Psapi.h>
+#pragma comment(lib, "psapi.lib")
+#endif
+
+#if defined(LINUX)
+#define Font X11_Font
+#define Screen X11_Screen
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/extensions/Xrandr.h>
+#include "archutils/Unix/X11Helper.h"
+#undef Font
+#undef Screen
+
+#define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
+#define _NET_WM_STATE_ADD           1    /* add/set property */
+
+#include <unistd.h>
+
+#include "arch/LowLevelWindow/LowLevelWindow_X11.h"
+#endif
 
 
 // Statistics stuff
@@ -181,17 +207,30 @@ void RageDisplay::ResetStats()
 	g_LastCheckTimer.GetDeltaTime();
 }
 
-#include <windows.h>
-#define PSAPI_VERSION 1
-#include <Psapi.h>
-#pragma comment(lib, "psapi.lib")
 RString RageDisplay::GetStats() const
 {
-	#define DIV 1048756
-	PROCESS_MEMORY_COUNTERS pmc;
-	GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
-	SIZE_T MemUse = pmc.PagefileUsage / DIV - 32;
+	#if defined(WIN32)
+		#define DIV 1048756
+		PROCESS_MEMORY_COUNTERS pmc;
+		GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+		SIZE_T MemUse = pmc.PagefileUsage / DIV - 32;
+
+	#else
+		// Not a pretty approach..
+		uint64_t memUse64 = 0;
+		const auto statmPath = "/proc/self/statm";
+		std::ifstream statmStream(statmPath, std::ios::in);
+		if (statmStream.is_open())
+		{
+			auto ignored = 0;
+			// size resident shared trs lrs drs dt
+			statmStream >> ignored >> memUse64;
+		}
+		memUse64 *= getpagesize();
+		uint32_t MemUse = memUse64 / 1024 / 1024;
+	#endif
 	RString s;
+
 	// If FPS == 0, we don't have stats yet.
 	if( !GetFPS() )
 		s = "-- FPS\n-- av FPS\n-- Max FPS\n-- Min FPS\n-- VPF\n-- DPF\n-- DPS\n-- MB";
