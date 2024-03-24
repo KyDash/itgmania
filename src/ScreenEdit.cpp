@@ -1501,12 +1501,14 @@ void ScreenEdit::Init()
 	m_NoteFieldEdit.SetZoom( SCREEN_HEIGHT/480*0.5 );
 	m_NoteFieldEdit.Init( &m_PlayerStateEdit, PLAYER_HEIGHT*2, false );
 	m_NoteFieldEdit.Load( &m_NoteDataEdit, -240, 850 );
+	m_NoteFieldEdit.SetName("NoteFieldEdit");
 	this->AddChild( &m_NoteFieldEdit );
 
 	m_NoteDataRecord.SetNumTracks( m_NoteDataEdit.GetNumTracks() );
 	m_NoteFieldRecord.SetXY( RECORD_X, RECORD_Y );
 	m_NoteFieldRecord.Init( GAMESTATE->m_pPlayerState[PLAYER_1], PLAYER_HEIGHT );
 	m_NoteFieldRecord.Load( &m_NoteDataRecord, -120, 425 );
+	m_NoteFieldRecord.SetName("NoteFieldRecord");
 	this->AddChild( &m_NoteFieldRecord );
 
 	m_EditState = EditState_Invalid;
