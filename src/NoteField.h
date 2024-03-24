@@ -70,6 +70,7 @@ public:
 	void SetBeatBars(bool active);
 	bool GetBeatBars();
 	void SetBeatBarsAlpha(float measure, float fourth, float eighth, float sixteenth);
+	void ToggleMeasureNumber(bool visible);
 
 protected:
 	void CacheNoteSkin( const RString &sNoteSkin );
@@ -81,6 +82,7 @@ protected:
 
 	enum BeatBarType { measure, beat, half_beat, quarter_beat };
 	void DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIndex );
+	void DrawMeasureNumber( const float fBeat, BeatBarType type, int iMeasureIndex );
 	void DrawMarkerBar( int fBeat );
 	void DrawAreaHighlight( int iStartBeat, int iEndBeat );
 	void set_text_measure_number_for_draw(

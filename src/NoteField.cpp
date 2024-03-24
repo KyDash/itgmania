@@ -56,6 +56,7 @@ NoteField::NoteField()
 	m_textMeasureNumber.SetZoom( 1.0f );
 	m_textMeasureNumber.SetShadowLength( 2 );
 	m_textMeasureNumber.SetWrapWidthPixels( 300 );
+	m_textMeasureNumber.SetVisible( false );
 
 	m_rectMarkerBar.SetEffectDiffuseShift( 2, RageColor(1,1,1,0.5f), RageColor(0.5f,0.5f,0.5f,0.5f) );
 
@@ -117,6 +118,11 @@ void NoteField::SetBeatBarsAlpha(float measure, float fourth, float eighth, floa
 	m_fBar4thAlpha = fourth;
 	m_fBar8thAlpha = eighth;
 	m_fBar16thAlpha = sixteenth;
+}
+
+void NoteField::ToggleMeasureNumber(bool visible)
+{
+	m_textMeasureNumber.SetVisible(visible);
 }
 
 void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
@@ -400,6 +406,7 @@ float NoteField::GetWidth() const
 void NoteField::DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIndex )
 {
 	bool bIsMeasure = type == measure;
+	bool bShowNumber = m_textMeasureNumber.GetVisible();
 
 	const float fYOffset	= ArrowEffects::GetYOffset( m_pPlayerState, 0, fBeat );
 	const float fYPos= ArrowEffects::GetYPos(m_pPlayerState, 0, fYOffset, m_fYReverseOffsetPixels);
@@ -456,7 +463,7 @@ void NoteField::DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIn
 	m_sprBeatBars.Draw();
 
 
-	if( GAMESTATE->IsEditing()  &&  bIsMeasure )
+	if( bIsMeasure && bShowNumber )
 	{
 		int iMeasureNoDisplay = iMeasureIndex;
 
@@ -823,7 +830,7 @@ void NoteField::DrawPrimitives()
 		segs[tst] = &(pTiming->GetTimingSegments(tst));
 
 	// Draw beat bars
-	if( ( GAMESTATE->IsEditing() || m_bShowBeatBars ) && pTiming != nullptr )
+	if ((m_bShowBeatBars || m_textMeasureNumber.GetVisible()) && pTiming != nullptr)
 	{
 		const std::vector<TimingSegment *> &tSigs = *segs[SEGMENT_TIME_SIG];
 		int iMeasureIndex = 0;
@@ -863,7 +870,7 @@ void NoteField::DrawPrimitives()
 		}
 	}
 
-	if( GAMESTATE->IsEditing() && pTiming != nullptr )
+	if( GAMESTATE->IsEditing() && m_textMeasureNumber.GetVisible() == true && pTiming != nullptr)
 	{
 		ASSERT(GAMESTATE->m_pCurSong != nullptr);
 
@@ -1308,6 +1315,12 @@ public:
 		return 0;
 	}
 
+	static int ToggleMeasureNumber(T* p, lua_State* L)
+	{
+		p->ToggleMeasureNumber(BArg(1));
+		return 0;
+	}
+
 	LunaNoteField()
 	{
 		ADD_METHOD(set_step_callback);
@@ -1322,6 +1335,7 @@ public:
 		ADD_METHOD(GetBeatBars);
 		ADD_METHOD(SetBeatBars);
 		ADD_METHOD(SetBeatBarsAlpha);
+		ADD_METHOD(ToggleMeasureNumber);
 	}
 };
 
