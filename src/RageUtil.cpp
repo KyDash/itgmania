@@ -1190,9 +1190,21 @@ void SortRStringArray( std::vector<RString> &arrayRStrings, const bool bSortAsce
 			bSortAscending?CompareRStringsAsc:CompareRStringsDesc );
 }
 
-float calc_mean( const float *pStart, const float *pEnd )
+float calc_mean(const float* pStart, const float* pEnd)
 {
-	return std::accumulate( pStart, pEnd, 0.f ) / std::distance( pStart, pEnd );
+	/* The Kahan summation algorithm is used here to prevent
+	 * situations where the low order bits may be lost.
+	 * https://en.wikipedia.org/wiki/Kahan_summation_algorithm */
+	float sum = 0.0f;
+	float c = 0.0f;
+	for (const float* p = pStart; p != pEnd; ++p)
+	{
+		float y = *p - c;
+		float t = sum + y;
+		c = (t - sum) - y;
+		sum = t;
+	}
+	return sum / (pEnd - pStart);
 }
 
 float calc_stddev( const float *pStart, const float *pEnd, bool bSample )
@@ -1819,8 +1831,15 @@ void UnicodeUpperLower( wchar_t *p, std::size_t iLen, const unsigned char pMappi
 	wchar_t *pEnd = p + iLen;
 	while( p != pEnd )
 	{
-		if( *p >= 0 && *p < 256 )
+		// wchar_t can be signed or unsigned depending on the platform and the compiler.
+		// We use WCHAR_MIN to determine a valid condition that won't emit a type-limits warning.
+		#if WCHAR_MIN != 0
+		if( *p >= 0 && *p < 256 ) {
+		#else
+		if( *p < 256 ) {
+		#endif
 			*p = pMapping[*p];
+		}
 		++p;
 	}
 }

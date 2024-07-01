@@ -1,44 +1,51 @@
-#include "global.h"
-#include "RageSoundReader.h"
-#include "RageLog.h"
-#include "RageUtil_AutoPtr.h"
+/*++
 
-REGISTER_CLASS_TRAITS( RageSoundReader, pCopy->Copy() );
+A layer to isolate windows.h from other source files while retaining the ability to set thread priorities.
 
-/* Read(), handling the STREAM_LOOPED and empty return cases. */
-int RageSoundReader::RetriedRead( float *pBuffer, int iFrames, int *iSourceFrame, float *fRate )
-{
-	/* pReader may return 0, which means "try again immediately".  As a failsafe,
-	 * only try this a finite number of times.  Use a high number, because in
-	 * principle each filter in the stack may cause this. */
-	int iTries = 10;
-	while( --iTries )
-	{
-		if( fRate )
-			*fRate = this->GetStreamToSourceRatio();
-		if( iSourceFrame )
-			*iSourceFrame = this->GetNextSourceFrame();
+	One possible way to call it if you don't need to store the result is like so:
 
-		int iGotFrames = this->Read( pBuffer, iFrames );
+		#ifdef _WIN32
+				bool SuccessStatus = BoostThreadPriorityToHighest();
+				if (!SuccessStatus)
+				{
+					ASSERT_M(0, "Failed to set thread priority to highest.");
+				}
+		#endif
 
-		if( iGotFrames == RageSoundReader::STREAM_LOOPED )
-			iGotFrames = 0;
+Please refer to the Windows SetThreadPriority function documentation for more information.
+https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setthreadpriority
 
-		if( iGotFrames != 0 )
-			return iGotFrames;
+Please maintain this priority structure for the threads:
 
-		// If the user is having I/O issues, give them a hint in the logs.
-		LOG->Warn( "Read() failed, retrying..." );
-	}
+Highest or Time Critical
+* Rendering thread
+* Audio mixing thread
+	- If this is not high enough priority, it can negatively affect the game clock
 
-	LOG->Warn( "Read() returned a failure status after 10 attempts to read the file; likely an I/O error" );
+Above Normal or Highest
+* Audio decoding thread
+* Audio streaming thread
+* Audio buffering thread
 
-	/* Pretend we got EOF. */
-	return RageSoundReader::END_OF_FILE;
-}
+Normal
+* Main game thread
+	- Please keep this below the audio thread priority
 
-/*
- * Copyright (c) 2006 Glenn Maynard
+Below Normal
+* Worker threads
+
+--*/
+
+bool SetThreadPriorityLevel(int priorityLevel);
+
+bool BoostThreadPriorityToBelowNormal();
+bool BoostThreadPriorityToNormal();
+bool BoostThreadPriorityToAboveNormal();
+bool BoostThreadPriorityToHighest();
+bool BoostThreadPriorityToTimeCritical();
+
+/**
+ * (c) sukibaby 2024
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

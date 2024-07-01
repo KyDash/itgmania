@@ -123,7 +123,7 @@ endif()
 
 target_compile_options("${SM_EXE_NAME}" PRIVATE
   $<$<CXX_COMPILER_ID:GNU>:
-    -Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-unknown-pragmas>
+  -Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-unknown-pragmas -Werror=type-limits>
   $<$<CXX_COMPILER_ID:Clang>:
     -Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-unknown-pragmas -Wno-undefined-var-template>
   $<$<CXX_COMPILER_ID:AppleClang>:
@@ -150,7 +150,7 @@ endif()
 
 if(MSVC)
   # TODO: Find a way to do this cleanly for non MSVC users.
-  set(SM_COMPILE_FLAGS "${SM_COMPILE_FLAGS} /MP2 /utf-8")
+  set(SM_COMPILE_FLAGS "${SM_COMPILE_FLAGS} /MP2")
 endif()
 
 set_target_properties("${SM_EXE_NAME}"
@@ -323,7 +323,10 @@ endif()
 set_property(TARGET "${SM_EXE_NAME}" PROPERTY FOLDER "Internal Libraries")
 
 list(APPEND SMDATA_LINK_LIB "lua-5.1" "miniz")
-include(../extern/CMakeProject-mmmagic.cmake)
+
+if(WITH_MINIMAID)
+  include(../extern/CMakeProject-mmmagic.cmake)
+endif()
 
 list(APPEND SMDATA_LINK_LIB "mad"
                             "pcre"
@@ -384,7 +387,6 @@ elseif(APPLE)
               ${MAC_FRAME_COREAUDIO}
               ${MAC_FRAME_CORESERVICES}
               ${MAC_FRAME_SYSTEM}
-              "${BZIP2_LIBRARY_RELEASE}"
               "${ICONV_LIBRARIES}"
               "${SM_FFMPEG_LIB}/libavformat.a"
               "${SM_FFMPEG_LIB}/libavcodec.a"
@@ -409,7 +411,7 @@ else() # Unix / Linux TODO: Remember to find and locate the zip archive files.
     list(APPEND SMDATA_LINK_LIB "${GTK3_LIBRARIES}")
   endif()
 
-  list(APPEND SMDATA_LINK_LIB "${BZIP2_LIBRARIES}" "${CMAKE_THREAD_LIBS_INIT}")
+  list(APPEND SMDATA_LINK_LIB "${CMAKE_THREAD_LIBS_INIT}")
 
   if(HAS_ALSA)
     list(APPEND SMDATA_LINK_LIB ${ALSA_LIBRARIES})
