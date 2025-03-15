@@ -1,6 +1,7 @@
 #ifndef SCREEN_EDIT_H
 #define SCREEN_EDIT_H
 
+#include "EditModePlayerManager.h"
 #include "ScreenWithMenuElements.h"
 #include "BitmapText.h"
 #include "Player.h"
@@ -285,6 +286,7 @@ protected:
 	Steps*			m_pSteps;
 
 	PlayerNumber	m_InputPlayerNumber;
+	PlayerNumber    main_player_;
 	PlayerState		m_PlayerStateEdit;
 	NoteField		m_NoteFieldEdit;
 	NoteData		m_NoteDataEdit;
@@ -376,6 +378,7 @@ protected:
 	bool			m_bRemoveNoteButtonDown;
 
 // for MODE_PLAY
+	EditModePlayerManager player_manager_;
 	void SetupCourseAttacks();
 	PlayerPlus		m_Player;
 	PlayerPlus		m_PlayerExtra;
