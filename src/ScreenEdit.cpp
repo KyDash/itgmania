@@ -1534,10 +1534,13 @@ void ScreenEdit::Init()
 		SetDirty(true);
 	}
 
+	bool needsCenterInGameplay = GAMESTATE->GetCurrentStyle(main_player_)->m_StyleType == StyleType_OnePlayerTwoSides;
+
+
 	m_Player->Init( "Player", GAMESTATE->m_pPlayerState[PLAYER_1], nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
 	m_Player->CacheAllUsedNoteSkins();
 	GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_HUMAN;
-	m_Player->SetXY( SCREEN_WIDTH * 0.25f, PLAYER_Y );
+	m_Player->SetXY(needsCenterInGameplay ? SCREEN_CENTER_X : (SCREEN_WIDTH * 0.25f), PLAYER_Y);
 	m_Player->SetZoom( SCREEN_HEIGHT/480 );
 	m_Player->SetName( "PlayerP1" );
 	this->AddChild( m_Player );
@@ -1566,10 +1569,11 @@ void ScreenEdit::Init()
 	player_manager_.AddPlayersToActorFrame(*this);
 	TransitionEditState(STATE_EDITING);
 
+
 	m_PlayerExtra->Init( "Player", GAMESTATE->m_pPlayerState[PLAYER_2], nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
 	m_PlayerExtra->CacheAllUsedNoteSkins();
 	GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = PC_HUMAN;
-	m_PlayerExtra->SetXY( SCREEN_WIDTH * 0.75f, PLAYER_Y );
+	m_PlayerExtra->SetXY(needsCenterInGameplay ? SCREEN_CENTER_X : (SCREEN_WIDTH * 0.75f), PLAYER_Y );
 	m_PlayerExtra->SetZoom( SCREEN_HEIGHT / 480 );
 	m_PlayerExtra->SetName( "PlayerP2" );
 	this->AddChild( m_PlayerExtra );
@@ -3518,7 +3522,7 @@ void ScreenEdit::TransitionEditState( EditState em )
 			ASSERT( pSteps != nullptr );
 			pSteps->SetNoteData(m_NoteDataEdit);
 			pStepsExtra->SetNoteData( m_NoteDataEdit );
-			m_pSong->ReCalculateRadarValuesAndLastSecond();
+			//m_pSong->ReCalculateRadarValuesAndLastSecond();
 
 			// TODO: Background videos don't support seeking, when they do, make sure
 			// to load the appropriate part of the video.
