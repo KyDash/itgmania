@@ -198,8 +198,8 @@ void RageDisplay::ProcessStatsOnFlip() {
 		g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck = g_iDrawCountSinceLastCheck = 0;
 		if( LOG_FPS )
 		{
-			RString sStats = GetStats();
-			sStats.Replace( "\n", ", " );
+			std::string sStats = GetStats();
+      Replace(sStats, "\n", ", ");
 			LOG->Trace( "%s", sStats.c_str() );
 		}
 	}
@@ -216,7 +216,7 @@ void RageDisplay::ResetStats()
 	g_LastCheckTimer.GetDeltaTime();
 }
 
-RString RageDisplay::GetStats() const
+std::string RageDisplay::GetStats() const
 {
 	#if defined(WIN32)
 		#define DIV 1048756
@@ -238,7 +238,7 @@ RString RageDisplay::GetStats() const
 		memUse64 *= getpagesize();
 		uint32_t MemUse = memUse64 / 1024 / 1024;
 	#endif
-	RString s;
+	std::string s;
 
 	// If FPS == 0, we don't have stats yet.
 	if( !GetFPS() )

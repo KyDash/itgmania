@@ -3285,7 +3285,7 @@ class LunaGameState : public Luna<GameState> {
 		StepsType stype= Enum::Check<StepsType>(L, 3);
 		Difficulty diff= Enum::Check<Difficulty>(L, 4);
 		Steps* new_steps= song->CreateSteps();
-		RString edit_name;
+		std::string edit_name;
 		// Form 2.
 		if(steps == nullptr)
 		{

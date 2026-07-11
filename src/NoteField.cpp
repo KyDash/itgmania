@@ -242,95 +242,6 @@ void NoteField::ToggleMeasureNumber(bool visible)
 	m_textMeasureNumber.SetVisible(visible);
 }
 
-void NoteField::CacheNoteSkin( const RString &sNoteSkin_ )
-{
-	RString sNoteSkinLower = sNoteSkin_;
-	sNoteSkinLower.MakeLower();
-
-	if( m_NoteDisplays.find(sNoteSkinLower) != m_NoteDisplays.end() )
-		return;
-
-	LockNoteSkin l( sNoteSkinLower );
-
-	LOG->Trace("NoteField::CacheNoteSkin: cache %s", sNoteSkinLower.c_str() );
-	NoteDisplayCols *nd = new NoteDisplayCols( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer );
-
-	for( int c=0; c<GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_iColsPerPlayer; c++ )
-		nd->display[c].Load( c, m_pPlayerState, m_fYReverseOffsetPixels );
-	nd->m_ReceptorArrowRow.Load( m_pPlayerState, m_fYReverseOffsetPixels );
-	nd->m_GhostArrowRow.Load( m_pPlayerState, m_fYReverseOffsetPixels );
-
-	m_NoteDisplays[ sNoteSkinLower ] = nd;
-}
-
-void NoteField::UncacheNoteSkin( const RString &sNoteSkin_ )
-{
-	RString sNoteSkinLower = sNoteSkin_;
-	sNoteSkinLower.MakeLower();
-
-	LOG->Trace("NoteField::CacheNoteSkin: release %s", sNoteSkinLower.c_str() );
-	ASSERT_M( m_NoteDisplays.find(sNoteSkinLower) != m_NoteDisplays.end(), sNoteSkinLower );
-	delete m_NoteDisplays[sNoteSkinLower];
-	m_NoteDisplays.erase( sNoteSkinLower );
-}
-
-void NoteField::CacheAllUsedNoteSkins()
-{
-	// If we're in Routine mode, apply our per-player noteskins.
-	if( GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)->m_StyleType == StyleType_TwoPlayersSharedSides )
-	{
-		FOREACH_EnabledPlayer( pn )
-			GAMESTATE->ApplyStageModifiers( pn, ROUTINE_NOTESKIN.GetValue(pn) );
-	}
-
-	/* Cache all note skins that we might need for the whole song, course or battle
-	 * play, so we don't have to load them later (such as between course songs). */
-	std::vector<RString> asSkinsLower;
-	GAMESTATE->GetAllUsedNoteSkins( asSkinsLower );
-	asSkinsLower.push_back( m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin );
-	for (RString &s : asSkinsLower)
-	{
-		NOTESKIN->ValidateNoteSkinName(s);
-		s.MakeLower();
-	}
-
-	for( unsigned i=0; i < asSkinsLower.size(); ++i )
-		CacheNoteSkin( asSkinsLower[i] );
-
-	/* If we're changing note skins in the editor, we can have old note skins lying
-	 * around.  Remove them so they don't accumulate. */
-	std::set<RString> setNoteSkinsToUnload;
-	for (std::pair<RString const &, NoteDisplayCols *> d : m_NoteDisplays)
-	{
-		bool unused = find(asSkinsLower.begin(), asSkinsLower.end(), d.first) == asSkinsLower.end();
-		if( unused )
-			setNoteSkinsToUnload.insert( d.first );
-	}
-	for (RString const & skin : setNoteSkinsToUnload)
-		UncacheNoteSkin( skin );
-
-	RString sCurrentNoteSkinLower = m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin;
-	NOTESKIN->ValidateNoteSkinName(sCurrentNoteSkinLower);
-	sCurrentNoteSkinLower.MakeLower();
-
-	std::map<RString, NoteDisplayCols*>::iterator it = m_NoteDisplays.find( sCurrentNoteSkinLower );
-	ASSERT_M( it != m_NoteDisplays.end(), sCurrentNoteSkinLower );
-	m_pCurDisplay = it->second;
-	memset( m_pDisplays, 0, sizeof(m_pDisplays) );
-
-	FOREACH_EnabledPlayer( pn )
-	{
-		RString sNoteSkinLower = GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions.GetCurrent().m_sNoteSkin;
-		NOTESKIN->ValidateNoteSkinName(sNoteSkinLower);
-		sNoteSkinLower.MakeLower();
-		it = m_NoteDisplays.find( sNoteSkinLower );
-		ASSERT_M( it != m_NoteDisplays.end(), sNoteSkinLower );
-		m_pDisplays[pn] = it->second;
-	}
-
-	InitColumnRenderers();
-}
-
 void NoteField::Init( const PlayerState* pPlayerState, float fYReverseOffsetPixels, bool use_states_zoom )
 {
 	m_pPlayerState = pPlayerState;
@@ -540,10 +451,10 @@ float NoteField::GetWidth() const {
   return (fMaxX - fMinX + ARROW_SIZE) * fYZoom;
 }
 
-void NoteField::DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIndex )
-{
-	bool bIsMeasure = type == measure;
-	bool bShowNumber = m_textMeasureNumber.GetVisible();
+void NoteField::DrawBeatBar(
+    const float fBeat, BeatBarType type, int iMeasureIndex) {
+  bool bIsMeasure = type == measure;
+  bool bShowNumber = m_textMeasureNumber.GetVisible();
 
   const float fYOffset = ArrowEffects::GetYOffset(m_pPlayerState, 0, fBeat);
   const float fYPos = ArrowEffects::GetYPos(
@@ -599,21 +510,20 @@ void NoteField::DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIn
   if (GAMESTATE->IsEditing() && bIsMeasure) {
     int iMeasureNoDisplay = iMeasureIndex;
 
-	if( bIsMeasure && bShowNumber )
-	{
-		int iMeasureNoDisplay = iMeasureIndex;
+    if (bIsMeasure && bShowNumber) {
+      int iMeasureNoDisplay = iMeasureIndex;
 
-		m_textMeasureNumber.SetDiffuse( RageColor(1,1,1,1) );
-		m_textMeasureNumber.SetGlow( RageColor(1,1,1,0) );
-		m_textMeasureNumber.SetHorizAlign( align_right );
-		m_textMeasureNumber.SetText( ssprintf("%d", iMeasureNoDisplay) );
-		m_textMeasureNumber.SetXY( -fWidth/2, fYPos );
-		m_textMeasureNumber.Draw();
-	}
+      m_textMeasureNumber.SetDiffuse(RageColor(1, 1, 1, 1));
+      m_textMeasureNumber.SetGlow(RageColor(1, 1, 1, 0));
+      m_textMeasureNumber.SetHorizAlign(align_right);
+      m_textMeasureNumber.SetText(ssprintf("%d", iMeasureNoDisplay));
+      m_textMeasureNumber.SetXY(-fWidth / 2, fYPos);
+      m_textMeasureNumber.Draw();
+    }
+  }
 }
 
-void NoteField::DrawBoard(
-    int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels) {
+void NoteField::DrawBoard(int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels) {
   // todo: make this an AutoActor instead? -aj
   Sprite* pSprite = dynamic_cast<Sprite*>((Actor*)m_sprBoard);
   if (pSprite == nullptr) {

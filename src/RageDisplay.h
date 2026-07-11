@@ -411,16 +411,6 @@ class RageDisplay {
   // Stuff in RageDisplay.cpp
   void SetDefaultRenderStates();
 
- public:
-  // Statistics
-  int GetFPS() const;
-  int GetVPF() const;
-  int GetCumFPS() const;  // average FPS since last reset
-  virtual void ResetStats();
-  virtual void ProcessStatsOnFlip();
-  virtual std::string GetStats() const;
-  void StatsAddVerts(int iNumVertsRendered);
-
 public:
 	// Statistics
 	int GetFPS() const;
@@ -434,8 +424,24 @@ public:
 	float GetCumFPSFloat() const; // average FPS since last reset
 	virtual void ResetStats();
 	virtual void ProcessStatsOnFlip();
-	virtual RString GetStats() const;
+	virtual std::string GetStats() const;
 	void StatsAddVerts( int iNumVertsRendered );
+
+   // World matrix stack functions.
+  void PushMatrix();
+  void PopMatrix();
+  void Translate(float x, float y, float z);
+  void TranslateWorld(float x, float y, float z);
+  void Scale(float x, float y, float z);
+  void RotateX(float deg);
+  void RotateY(float deg);
+  void RotateZ(float deg);
+  void SkewX(float fAmount);
+  void SkewY(float fAmount);
+  void MultMatrix(const RageMatrix& f) { this->PostMultMatrix(f); } /* alias */
+  void PostMultMatrix(const RageMatrix& f);
+  void PreMultMatrix(const RageMatrix& f);
+  void LoadIdentity();
 
   // Texture matrix functions
   void TexturePushMatrix();
