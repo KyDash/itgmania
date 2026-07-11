@@ -846,6 +846,10 @@ EditButton ScreenEdit::DeviceToEdit(const DeviceInput& DeviceI) const {
 /* Given a DeviceInput that was just depressed, return an active edit function.
  */
 EditButton ScreenEdit::MenuButtonToEditButton(GameButton MenuI) const {
+  if (MenuI == GameButton_Invalid) {
+    return EditButton_Invalid;
+  }
+
   const MapEditButtonToMenuButton* pCurrentMap = GetCurrentMenuButtonMap();
 
   FOREACH_EditButton(e) {
@@ -1683,6 +1687,18 @@ static void SetDefaultEditorNoteSkin(
   defaultValueOut = "cel";
 }
 
+// In routine/couples (TwoPlayersSharedSides) default to a per-player noteskin
+// configured via the RoutineEditorNoteSkinP1/P2 theme metrics
+static std::string RoutineEditorNoteSkinName(size_t i) {
+  return ssprintf("RoutineEditorNoteSkinP%i", int(i + 1));
+}
+static ThemeMetric1D<std::string> ROUTINE_EDITOR_NOTE_SKIN(
+    "ScreenEdit", RoutineEditorNoteSkinName, NUM_PLAYERS);
+
+static std::string GetRoutineEditorNoteSkin(PlayerNumber pn) {
+  return ROUTINE_EDITOR_NOTE_SKIN.GetValue(pn);
+}
+
 static Preference1D<std::string> EDITOR_NOTE_SKINS(
     SetDefaultEditorNoteSkin, NUM_PLAYERS);
 
@@ -1697,12 +1713,29 @@ void ScreenEdit::Init() {
 
   GAMESTATE->m_bIsUsingStepTiming = false;
   GAMESTATE->m_bInStepEditor = true;
+  // Is already zero if going into EditMode, but not always zero upon entering
+  // PracticeMode
+  GAMESTATE->m_Position.m_fMusicSeconds = 0.0;
 
   SubscribeToMessage("Judgment");
   main_player_ = GAMESTATE->GetMasterPlayerNumber();
 
   ASSERT(GAMESTATE->m_pCurSong != nullptr);
   ASSERT(GAMESTATE->m_pCurSteps[main_player_] != nullptr);
+
+  // In TwoPlayersSharedSides (routine/couples) editing, both players share
+  // the same chart. Ensure every enabled player's m_pCurSteps slot points at
+  // the master player's Steps
+  if (GAMESTATE->GetCurrentStyle(main_player_) != nullptr &&
+      GAMESTATE->GetCurrentStyle(main_player_)->m_StyleType ==
+          StyleType_TwoPlayersSharedSides) {
+    Steps* pSharedSteps = GAMESTATE->m_pCurSteps[main_player_];
+    FOREACH_EnabledPlayer(pn) {
+      if (GAMESTATE->m_pCurSteps[pn] != pSharedSteps) {
+        GAMESTATE->m_pCurSteps[pn].Set(pSharedSteps);
+      }
+    }
+  }
 
   EDIT_MODE.Load(m_sName, "EditMode");
   ScreenWithMenuElements::Init();
@@ -1767,10 +1800,21 @@ void ScreenEdit::Init() {
   // multiple ScreenEdits.  That is the way the rest of the options work.
   // TODO: It would be cleaner to do this by making it possible to set an option
   // in metrics.ini.
+  const bool routine_edit =
+      GAMESTATE->GetCurrentStyle(main_player_) != nullptr &&
+      GAMESTATE->GetCurrentStyle(main_player_)->m_StyleType ==
+          StyleType_TwoPlayersSharedSides;
+
   if (!GAMESTATE->m_bDidModeChangeNoteSkin) {
     GAMESTATE->m_bDidModeChangeNoteSkin = true;
     FOREACH_PlayerNumber(pn) {
-      const std::string& sNoteSkin = EDITOR_NOTE_SKINS[pn].Get();
+      std::string sNoteSkin = routine_edit ? GetRoutineEditorNoteSkin(pn)
+                                           : EDITOR_NOTE_SKINS[pn].Get();
+      if (!NOTESKIN->DoesNoteSkinExist(sNoteSkin)) {
+        // Fall back to the user's editor preference if the routine variant
+        // is missing (e.g. user removed the couples noteskin).
+        sNoteSkin = EDITOR_NOTE_SKINS[pn].Get();
+      }
       if (NOTESKIN->DoesNoteSkinExist(sNoteSkin)) {
         PO_GROUP_ASSIGN(
             GAMESTATE->m_pPlayerState[pn]->m_PlayerOptions, ModsLevel_Preferred,
@@ -1787,10 +1831,16 @@ void ScreenEdit::Init() {
   // productive editing.
   // todo: We should allow certain noteskins (note-colored/rhythm) to be
   // displayed. (Perhaps this should be a noteskin metric.) -aj
-  if (NOTESKIN->DoesNoteSkinExist(EDITOR_NOTE_SKINS[main_player_].Get())) {
+  std::string sEditNoteSkin = routine_edit
+                                  ? GetRoutineEditorNoteSkin(main_player_)
+                                  : EDITOR_NOTE_SKINS[main_player_].Get();
+  if (!NOTESKIN->DoesNoteSkinExist(sEditNoteSkin)) {
+    sEditNoteSkin = EDITOR_NOTE_SKINS[main_player_].Get();
+  }
+  if (NOTESKIN->DoesNoteSkinExist(sEditNoteSkin)) {
     PO_GROUP_ASSIGN(
         m_PlayerStateEdit.m_PlayerOptions, ModsLevel_Stage, m_sNoteSkin,
-        EDITOR_NOTE_SKINS[main_player_].Get());
+        sEditNoteSkin);
   } else {
     PO_GROUP_ASSIGN(
         m_PlayerStateEdit.m_PlayerOptions, ModsLevel_Stage, m_sNoteSkin,
@@ -1871,6 +1921,7 @@ void ScreenEdit::Init() {
   m_textInfo.LoadFromFont(THEME->GetPathF("ScreenEdit", "Info"));
   LOAD_ALL_COMMANDS_AND_SET_XY_AND_ON_COMMAND(m_textInfo);
   this->AddChild(&m_textInfo);
+  m_bTextInfoNeedsUpdate = false;
 
   m_textPlayRecordHelp.SetName("PlayRecordHelp");
   m_textPlayRecordHelp.LoadFromFont(
@@ -3966,33 +4017,33 @@ void ScreenEdit::TransitionEditState(EditState em) {
       player_manager_.SetupAutoplay();
       player_manager_.ReloadNoteData(m_NoteDataEdit);
 
-		m_Player.Load( m_NoteDataEdit );
-		m_PlayerExtra.Load( m_NoteDataEdit );
+      m_Player.Load( m_NoteDataEdit );
+      m_PlayerExtra.Load( m_NoteDataEdit );
 
-		/*
-                if (GAMESTATE->m_pPlayerState[PLAYER_1]
-                        ->m_PlayerOptions.GetCurrent()
-                        .m_fPlayerAutoPlay != 0)
-		{
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_AUTOPLAY;
-			GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = PC_AUTOPLAY;
-		}
-		else
-		{
-			GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = GamePreferences::m_AutoPlay;
-			GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = GamePreferences::m_AutoPlay;
-		}*/
+      /*
+                  if (GAMESTATE->m_pPlayerState[PLAYER_1]
+                          ->m_PlayerOptions.GetCurrent()
+                          .m_fPlayerAutoPlay != 0)
+      {
+        GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = PC_AUTOPLAY;
+        GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = PC_AUTOPLAY;
+      }
+      else
+      {
+        GAMESTATE->m_pPlayerState[PLAYER_1]->m_PlayerController = GamePreferences::m_AutoPlay;
+        GAMESTATE->m_pPlayerState[PLAYER_2]->m_PlayerController = GamePreferences::m_AutoPlay;
+      }*/
 
-		if( g_bEditorShowBGChangesPlay )
-		{
-			/* FirstBeat affects backgrounds, so commit changes to memory (not to disk)
-			 * and recalc it. */
-			Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
-			Steps* pStepsExtra = GAMESTATE->m_pCurSteps[PLAYER_2];
-			ASSERT( pSteps != nullptr );
-			pSteps->SetNoteData(m_NoteDataEdit);
-			pStepsExtra->SetNoteData( m_NoteDataEdit );
-			//m_pSong->ReCalculateRadarValuesAndLastSecond();
+      if( g_bEditorShowBGChangesPlay )
+      {
+        /* FirstBeat affects backgrounds, so commit changes to memory (not to disk)
+        * and recalc it. */
+        Steps* pSteps = GAMESTATE->m_pCurSteps[PLAYER_1];
+        Steps* pStepsExtra = GAMESTATE->m_pCurSteps[PLAYER_2];
+        ASSERT( pSteps != nullptr );
+        pSteps->SetNoteData(m_NoteDataEdit);
+        pStepsExtra->SetNoteData( m_NoteDataEdit );
+        m_pSong->ReCalculateRadarValuesAndLastSecond();
 
         // TODO: Background videos don't support seeking, when they do, make
         // sure to load the appropriate part of the video.
@@ -4126,8 +4177,11 @@ void ScreenEdit::ScrollTo(float fDestinationBeat) {
       }
     }
   }
-
+  GAMESTATE->m_Position.m_fMusicSeconds =
+      GetAppropriateTiming().GetElapsedTimeFromBeat(fDestinationBeat);
   m_soundChangeLine.Play(true);
+  m_sprOverlay->PlayCommand("ScrollSong");
+  m_sprUnderlay->PlayCommand("ScrollSong");
 }
 
 static LocalizedString NEW_KEYSOUND_FILE(
@@ -4851,39 +4905,43 @@ void ScreenEdit::HandleScreenMessage(const ScreenMessage SM) {
      * without saving. However, without this code, any new steps will get
      * saved on quit. -aj */
 
-		// At this point, the last good song copy is in use.
-		Song *pSong = GAMESTATE->m_pCurSong;
-		const std::vector<Steps*> &apSteps = pSong->GetAllSteps();
-		std::vector<Steps*> apToDelete;
-		for (Steps *s : apSteps)
-		{
-			// If we're not on the same style, let it go.
-			if( GAMESTATE->m_pCurSteps[main_player_]->m_StepsType != s->m_StepsType )
-				continue;
-			// If autogenned, it isn't being saved.
-			if( s->IsAutogen() )
-				continue;
-			// If the notedata has content, let it go.
-			if( !s->GetNoteData().IsEmpty() )
-				continue;
-			// It's hard to say if these steps were saved to disk or not.
-			/*
-			if( !(s->GetSavedToDisk() )
-				continue;
-			 */
-			apToDelete.push_back( s );
-		}
-		for (Steps *pSteps : apToDelete)
-		{
-			pSong->DeleteSteps( pSteps );
-			if( m_pSteps == pSteps )
-				m_pSteps = nullptr;
-			if (GAMESTATE->m_pCurSteps[main_player_].Get() == pSteps)
-			{
-				GAMESTATE->m_pCurSteps[PLAYER_1].Set(nullptr);
-				GAMESTATE->m_pCurSteps[PLAYER_2].Set(nullptr);
-			}
-		}
+    // At this point, the last good song copy is in use.
+    Song* pSong = GAMESTATE->m_pCurSong;
+    const std::vector<Steps*>& apSteps = pSong->GetAllSteps();
+    std::vector<Steps*> apToDelete;
+    for (Steps* s : apSteps) {
+      // If we're not on the same style, let it go.
+      if (GAMESTATE->m_pCurSteps[main_player_]->m_StepsType != s->m_StepsType) {
+        continue;
+      }
+      // If autogenned, it isn't being saved.
+      if (s->IsAutogen()) {
+        continue;
+      }
+      // If the notedata has content, let it go.
+      if (!s->GetNoteData().IsEmpty()) {
+        continue;
+      }
+      // It's hard to say if these steps were saved to disk or not.
+      /*
+      if( !(s->GetSavedToDisk() )
+              continue;
+       */
+      apToDelete.push_back(s);
+    }
+    for (Steps* pSteps : apToDelete) {
+      pSong->DeleteSteps(pSteps);
+      if (m_pSteps == pSteps) {
+        m_pSteps = nullptr;
+      }
+      // In routine/couples editing every enabled player's m_pCurSteps are
+      // pointed at the shared Steps.
+      FOREACH_PlayerNumber(pn) {
+        if (GAMESTATE->m_pCurSteps[pn].Get() == pSteps) {
+          GAMESTATE->m_pCurSteps[pn].Set(nullptr);
+        }
+      }
+    }
 
     m_Out.StartTransitioning(SM_GoToNextScreen);
   } else if (SM == SM_GainFocus) {
@@ -6151,7 +6209,8 @@ void ScreenEdit::HandleAreaMenuChoice(
     case last_second_at_beat: {
       const TimingData& timing = GetAppropriateTiming();
       Song& s = *GAMESTATE->m_pCurSong;
-      s.SetSpecifiedLastSecond(timing.GetElapsedTimeFromBeat(GetBeat()));
+      s.SetSpecifiedLastSecond(
+          timing.GetElapsedTimeFromBeatNoOffset(GetBeat()));
       break;
     }
     case undo:
