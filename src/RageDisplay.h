@@ -411,23 +411,23 @@ class RageDisplay {
   // Stuff in RageDisplay.cpp
   void SetDefaultRenderStates();
 
-public:
-	// Statistics
-	int GetFPS() const;
-	float GetFPSFloat() const;
-	float GetMaxFPSFloat() const;
-	float GetMinFPSFloat() const;
-	int GetVPF() const;
-	int GetDPF() const;
-	int GetDPS() const;
-	int GetCumFPS() const; // average FPS since last reset
-	float GetCumFPSFloat() const; // average FPS since last reset
-	virtual void ResetStats();
-	virtual void ProcessStatsOnFlip();
-	virtual std::string GetStats() const;
-	void StatsAddVerts( int iNumVertsRendered );
+ public:
+  // Statistics
+  int GetFPS() const;
+  float GetFPSFloat() const;
+  float GetMaxFPSFloat() const;
+  float GetMinFPSFloat() const;
+  int GetVPF() const;
+  int GetDPF() const;
+  int GetDPS() const;
+  int GetCumFPS() const;         // average FPS since last reset
+  float GetCumFPSFloat() const;  // average FPS since last reset
+  virtual void ResetStats();
+  virtual void ProcessStatsOnFlip();
+  virtual std::string GetStats() const;
+  void StatsAddVerts(int iNumVertsRendered);
 
-   // World matrix stack functions.
+  // World matrix stack functions.
   void PushMatrix();
   void PopMatrix();
   void Translate(float x, float y, float z);

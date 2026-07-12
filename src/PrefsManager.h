@@ -188,80 +188,92 @@ class PrefsManager {
 
   Preference<float> m_fLifeDifficultyScale;
 
-	// Whoever added these: Please add a comment saying what they do. -Chris
-	Preference<int>		m_iRegenComboAfterMiss; // combo that must be met after a Miss to regen life
-	Preference<int>		m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if multiple Misses occur in rapid succession
-	Preference<bool>	m_bMercifulDrain; // negative life deltas are scaled by the players life percentage
-	Preference<bool>	m_HarshHotLifePenalty; // See LifeMeterBar.cpp -Kyz
-	Preference<bool>	m_bMinimum1FullSongInCourses; // FEoS for 1st song, FailImmediate thereafter
-	Preference<bool>	m_bFailOffInBeginner;
-	Preference<bool>	m_bFailOffForFirstStageEasy;
-	Preference<bool>	m_bMercifulBeginner; // don't subtract from percent score or grade DP, larger W5 window
-	Preference<bool>	m_bMercifulSuperMeter; // negative super deltas are scaled by the players life percentage
-	Preference<bool>	m_bDelayedBack;
-	Preference<bool>	m_AllowHoldForOptions;
-	Preference<bool>	m_bShowInstructions; // how to play a mode
-	Preference<bool>	m_bShowCaution;
-	Preference<bool>	m_bShowNativeLanguage;
-	Preference<int>	m_iArcadeOptionsNavigation;
-	Preference<bool>	m_ThreeKeyNavigation;
-	Preference<MusicWheelUsesSections>		m_MusicWheelUsesSections;
-	Preference<int>	m_iMusicWheelSwitchSpeed;
-	Preference<AllowW1>	m_AllowW1; // this should almost always be on, given use cases. -aj
-	Preference<bool>	m_bEventMode;
-	Preference<int>	m_iCoinsPerCredit;
-	Preference<int>	m_iMaxNumCredits;
-	Preference<int>	m_iSongsPerPlay;
-	Preference<bool>	m_bDelayedCreditsReconcile; // zuh?
-	Preference<bool>	m_bComboContinuesBetweenSongs;
-	Preference<bool>	m_AllowMultipleToasties;
-	Preference<TapNoteScore> m_MinTNSToHideNotes;
-	Preference<Maybe>	m_ShowSongOptions;
-	Preference<bool>	m_bPercentageScoring;
-	Preference<float>	m_fMinPercentageForMachineSongHighScore;
-	Preference<float>	m_fMinPercentageForMachineCourseHighScore;
-	Preference<bool>	m_bDisqualification;
-	Preference<bool>	m_bAutogenSteps;
-	Preference<bool>	m_bAutogenGroupCourses;
-	Preference<bool>	m_bOnlyPreferredDifficulties;
-	Preference<bool>	m_bBreakComboToGetItem;
-	Preference<bool>	m_bLockCourseDifficulties;
-	Preference<ShowDancingCharacters>		m_ShowDancingCharacters;
-	Preference<bool>	m_bUseUnlockSystem;
-	Preference<float>	m_fGlobalOffsetSeconds;
-	Preference<SyncOffset>	m_DefaultSyncOffset;
-	Preference<int>	m_iProgressiveLifebar;
-	Preference<int>	m_iProgressiveStageLifebar;
-	Preference<int>	m_iProgressiveNonstopLifebar;
-	Preference<bool>	m_bShowBeginnerHelper;
-	Preference<bool>	m_bDisableScreenSaver;
-	Preference<std::string>	m_sLanguage;
-	Preference<std::string>	m_sMemoryCardProfileSubdir; // the directory on a memory card to look in for a profile
-	Preference<int>	m_iProductID; // Saved in HighScore to track what software version a score came from.
-	Preference<int>	m_iCenterImageTranslateX;
-	Preference<int>	m_iCenterImageTranslateY;
-	Preference<int>	m_fCenterImageAddWidth;
-	Preference<int>	m_fCenterImageAddHeight;
-	Preference<AttractSoundFrequency>	m_AttractSoundFrequency;
-	Preference<bool>	m_bAllowExtraStage;
-	Preference<int>	m_iMaxHighScoresPerListForMachine;
-	Preference<int>	m_iMaxHighScoresPerListForPlayer;
-	Preference<bool>	m_bAllowMultipleHighScoreWithSameName;
-	Preference<bool> m_DisableUploadDir;
-	Preference<bool>	m_bCelShadeModels;
-	Preference<bool>	m_bPreferredSortUsesGroups;
-	Preference<float>	m_fDebounceCoinInputTime; // allow users to apply a distinct debounce to coin input
-	Preference<bool>	m_bBothAtOnce;
-	Preference<bool>	m_bResetCoinsAtStartup;
+  // Whoever added these: Please add a comment saying what they do. -Chris
+  Preference<int> m_iRegenComboAfterMiss;  // combo that must be met after a
+                                           // Miss to regen life
+  Preference<int>
+      m_iMaxRegenComboAfterMiss;  // caps RegenComboAfterMiss if multiple Misses
+                                  // occur in rapid succession
+  Preference<bool> m_bMercifulDrain;  // negative life deltas are scaled by the
+                                      // players life percentage
+  Preference<bool> m_HarshHotLifePenalty;         // See LifeMeterBar.cpp -Kyz
+  Preference<bool> m_bMinimum1FullSongInCourses;  // FEoS for 1st song,
+                                                  // FailImmediate thereafter
+  Preference<bool> m_bFailOffInBeginner;
+  Preference<bool> m_bFailOffForFirstStageEasy;
+  Preference<bool> m_bMercifulBeginner;  // don't subtract from percent score or
+                                         // grade DP, larger W5 window
+  Preference<bool> m_bMercifulSuperMeter;  // negative super deltas are scaled
+                                           // by the players life percentage
+  Preference<bool> m_bDelayedBack;
+  Preference<bool> m_AllowHoldForOptions;
+  Preference<bool> m_bShowInstructions;  // how to play a mode
+  Preference<bool> m_bShowCaution;
+  Preference<bool> m_bShowNativeLanguage;
+  Preference<int> m_iArcadeOptionsNavigation;
+  Preference<bool> m_ThreeKeyNavigation;
+  Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
+  Preference<int> m_iMusicWheelSwitchSpeed;
+  Preference<bool> m_bRandomPrioritizeDifficulty;
+  Preference<AllowW1>
+      m_AllowW1;  // this should almost always be on, given use cases. -aj
+  Preference<bool> m_bEventMode;
+  Preference<int> m_iCoinsPerCredit;
+  Preference<int> m_iMaxNumCredits;
+  Preference<int> m_iSongsPerPlay;
+  Preference<bool> m_bDelayedCreditsReconcile;  // zuh?
+  Preference<bool> m_bComboContinuesBetweenSongs;
+  Preference<bool> m_AllowMultipleToasties;
+  Preference<TapNoteScore> m_MinTNSToHideNotes;
+  Preference<Maybe> m_ShowSongOptions;
+  Preference<bool> m_bPercentageScoring;
+  Preference<float> m_fMinPercentageForMachineSongHighScore;
+  Preference<float> m_fMinPercentageForMachineCourseHighScore;
+  Preference<bool> m_bDisqualification;
+  Preference<bool> m_bAutogenSteps;
+  Preference<bool> m_bAutogenGroupCourses;
+  Preference<bool> m_bOnlyPreferredDifficulties;
+  Preference<bool> m_bBreakComboToGetItem;
+  Preference<bool> m_bLockCourseDifficulties;
+  Preference<ShowDancingCharacters> m_ShowDancingCharacters;
+  Preference<bool> m_bUseUnlockSystem;
+  Preference<float> m_fGlobalOffsetSeconds;
+  Preference<SyncOffset> m_DefaultSyncOffset;
+  Preference<int> m_iProgressiveLifebar;
+  Preference<int> m_iProgressiveStageLifebar;
+  Preference<int> m_iProgressiveNonstopLifebar;
+  Preference<bool> m_bShowBeginnerHelper;
+  Preference<bool> m_bDisableScreenSaver;
+  Preference<std::string> m_sLanguage;
+  Preference<std::string>
+      m_sMemoryCardProfileSubdir;  // the directory on a memory card to look in
+                                   // for a profile
+  Preference<int> m_iProductID;    // Saved in HighScore to track what software
+                                   // version a score came from.
+  Preference<int> m_iCenterImageTranslateX;
+  Preference<int> m_iCenterImageTranslateY;
+  Preference<int> m_fCenterImageAddWidth;
+  Preference<int> m_fCenterImageAddHeight;
+  Preference<AttractSoundFrequency> m_AttractSoundFrequency;
+  Preference<bool> m_bAllowExtraStage;
+  Preference<int> m_iMaxHighScoresPerListForMachine;
+  Preference<int> m_iMaxHighScoresPerListForPlayer;
+  Preference<bool> m_bAllowMultipleHighScoreWithSameName;
+  Preference<bool> m_DisableUploadDir;
+  Preference<bool> m_bCelShadeModels;
+  Preference<bool> m_bPreferredSortUsesGroups;
+  Preference<float>
+      m_fDebounceCoinInputTime;  // allow users to apply a distinct debounce to
+                                 // coin input
+  Preference<bool> m_bResetCoinsAtStartup;
 
   /**
    * Whether ratemod should affect playback speeds of FGChanges or not.
    * Originally introduced in NotITG.
    */
   Preference<bool> m_bRateModsAffectTweens;
-
-  // Whoever added these: Please add a comment saying what they do. -Chris
-  Preference<bool> m_bRandomPrioritizeDifficulty;
+  Preference<bool>
+      m_bBothAtOnce;  // Duplicates player inputs to all joined players
 
   // Number of seconds it takes for a button on the controller to release
   // after pressed.

@@ -74,10 +74,11 @@ class NoteField : public ActorFrame {
   // public so that the Lua API can access it. -Kyz
   std::vector<NoteColumnRenderer> m_ColumnRenderers;
 
-	void SetBeatBars(bool active);
-	bool GetBeatBars();
-	void SetBeatBarsAlpha(float measure, float fourth, float eighth, float sixteenth);
-	void ToggleMeasureNumber(bool visible);
+  void SetBeatBars(bool active);
+  bool GetBeatBars();
+  void SetBeatBarsAlpha(
+      float measure, float fourth, float eighth, float sixteenth);
+  void ToggleMeasureNumber(bool visible);
 
  protected:
   void CacheNoteSkin(const std::string& sNoteSkin);
@@ -91,20 +92,24 @@ class NoteField : public ActorFrame {
       int iDrawDistanceAfterTargetsPixels,
       int iDrawDistanceBeforeTargetsPixels);
 
-	enum BeatBarType { measure, beat, half_beat, quarter_beat };
-	void DrawBeatBar( const float fBeat, BeatBarType type, int iMeasureIndex );
-	void DrawMeasureNumber( const float fBeat, BeatBarType type, int iMeasureIndex );
-	void DrawMarkerBar( int fBeat );
-	void DrawAreaHighlight( int iStartBeat, int iEndBeat );
-	void set_text_measure_number_for_draw(
-		const float beat, const float side_sign, float x_offset,
-		const float horiz_align, const RageColor& color, const RageColor& glow);
-	void draw_timing_segment_text(const std::string& text,
-		const float beat, const float side_sign, float x_offset,
-		const float horiz_align, const RageColor& color, const RageColor& glow);
-	void DrawAttackText(const float beat, const Attack &attack, const RageColor& glow);
-	void DrawBGChangeText(const float beat, const std::string new_bg_name, const RageColor& glow);
-	float GetWidth() const;
+  enum BeatBarType { measure, beat, half_beat, quarter_beat };
+  void DrawBeatBar(const float fBeat, BeatBarType type, int iMeasureIndex);
+  void DrawMeasureNumber(
+      const float fBeat, BeatBarType type, int iMeasureIndex);
+  void DrawMarkerBar(int fBeat);
+  void DrawAreaHighlight(int iStartBeat, int iEndBeat);
+  void set_text_measure_number_for_draw(
+      const float beat, const float side_sign, float x_offset,
+      const float horiz_align, const RageColor& color, const RageColor& glow);
+  void draw_timing_segment_text(
+      const std::string& text, const float beat, const float side_sign,
+      float x_offset, const float horiz_align, const RageColor& color,
+      const RageColor& glow);
+  void DrawAttackText(
+      const float beat, const Attack& attack, const RageColor& glow);
+  void DrawBGChangeText(
+      const float beat, const std::string new_bg_name, const RageColor& glow);
+  float GetWidth() const;
 
   const NoteData* m_pNoteData;
 

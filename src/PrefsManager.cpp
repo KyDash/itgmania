@@ -192,8 +192,8 @@ PrefsManager::PrefsManager()
 
       m_fLifeDifficultyScale("LifeDifficultyScale", 1.0f),
 
-	    m_bRateModsAffectTweens		( "RateModsAffectFGChanges",	false ),
-	    m_bBothAtOnce				( "BothAtOnce",	false),
+      m_bRateModsAffectTweens("RateModsAffectFGChanges", false),
+      m_bBothAtOnce("BothAtOnce", false),
 
       m_iRegenComboAfterMiss("RegenComboAfterMiss", 5),
       m_iMaxRegenComboAfterMiss(

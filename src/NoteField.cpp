@@ -70,11 +70,12 @@ NoteField::NoteField() {
   m_fBar8thAlpha = BAR_8TH_ALPHA;
   m_fBar16thAlpha = BAR_16TH_ALPHA;
 
-	m_textMeasureNumber.LoadFromFont( THEME->GetPathF("NoteField","MeasureNumber") );
-	m_textMeasureNumber.SetZoom( 1.0f );
-	m_textMeasureNumber.SetShadowLength( 2 );
-	m_textMeasureNumber.SetWrapWidthPixels( 300 );
-	m_textMeasureNumber.SetVisible( false );
+  m_textMeasureNumber.LoadFromFont(
+      THEME->GetPathF("NoteField", "MeasureNumber"));
+  m_textMeasureNumber.SetZoom(1.0f);
+  m_textMeasureNumber.SetShadowLength(2);
+  m_textMeasureNumber.SetWrapWidthPixels(300);
+  m_textMeasureNumber.SetVisible(false);
 
   m_rectMarkerBar.SetEffectDiffuseShift(
       2, RageColor(1, 1, 1, 0.5f), RageColor(0.5f, 0.5f, 0.5f, 0.5f));
@@ -224,32 +225,31 @@ void NoteField::CacheAllUsedNoteSkins() {
   InitColumnRenderers();
 }
 
-void NoteField::ToggleMeasureNumber(bool visible)
-{
-	m_textMeasureNumber.SetVisible(visible);
+void NoteField::ToggleMeasureNumber(bool visible) {
+  m_textMeasureNumber.SetVisible(visible);
 }
 
-void NoteField::Init( const PlayerState* pPlayerState, float fYReverseOffsetPixels, bool use_states_zoom )
-{
-	m_pPlayerState = pPlayerState;
-	m_fYReverseOffsetPixels = fYReverseOffsetPixels;
-	CacheAllUsedNoteSkins();
-	// Design change:  Instead of having a flag in the style that toggles a
-	// fixed zoom that is only applied to the columns, ScreenGameplay now
-	// calculates a zoom factor to apply to the notefield and puts it in the
-	// PlayerState. -Kyz
-	// use_states_zoom flag exists because edit mode has to set its own special
-	// zoom factor. -Kyz
-	if(use_states_zoom)
-	{
-		SetZoom(pPlayerState->m_NotefieldZoom);
-	}
-	// Pass the player state info down to children so that they can set
-	// per-player things.  For example, if a screen filter is in the notefield
-	// board, this tells it what player it's for. -Kyz
-	Message msg("PlayerStateSet");
-	msg.SetParam("PlayerNumber", pPlayerState->m_PlayerNumber);
-	HandleMessage(msg);
+void NoteField::Init(
+    const PlayerState* pPlayerState, float fYReverseOffsetPixels,
+    bool use_states_zoom) {
+  m_pPlayerState = pPlayerState;
+  m_fYReverseOffsetPixels = fYReverseOffsetPixels;
+  CacheAllUsedNoteSkins();
+  // Design change:  Instead of having a flag in the style that toggles a
+  // fixed zoom that is only applied to the columns, ScreenGameplay now
+  // calculates a zoom factor to apply to the notefield and puts it in the
+  // PlayerState. -Kyz
+  // use_states_zoom flag exists because edit mode has to set its own special
+  // zoom factor. -Kyz
+  if (use_states_zoom) {
+    SetZoom(pPlayerState->m_NotefieldZoom);
+  }
+  // Pass the player state info down to children so that they can set
+  // per-player things.  For example, if a screen filter is in the notefield
+  // board, this tells it what player it's for. -Kyz
+  Message msg("PlayerStateSet");
+  msg.SetParam("PlayerNumber", pPlayerState->m_PlayerNumber);
+  HandleMessage(msg);
 }
 
 void NoteField::Load(
@@ -505,8 +505,6 @@ void NoteField::DrawBeatBar(
   m_sprBeatBars.Draw();
 
   if (GAMESTATE->IsEditing() && bIsMeasure) {
-    int iMeasureNoDisplay = iMeasureIndex;
-
     if (bIsMeasure && bShowNumber) {
       int iMeasureNoDisplay = iMeasureIndex;
 
@@ -520,7 +518,8 @@ void NoteField::DrawBeatBar(
   }
 }
 
-void NoteField::DrawBoard(int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels) {
+void NoteField::DrawBoard(
+    int iDrawDistanceAfterTargetsPixels, int iDrawDistanceBeforeTargetsPixels) {
   // todo: make this an AutoActor instead? -aj
   Sprite* pSprite = dynamic_cast<Sprite*>((Actor*)m_sprBoard);
   if (pSprite == nullptr) {
@@ -887,9 +886,7 @@ void NoteField::DrawPrimitives() {
        m_FieldRenderArgs.draw_pixels_before_targets))
 
   // Draw Receptors
-  {
-    cur->m_ReceptorArrowRow.Draw();
-  }
+  { cur->m_ReceptorArrowRow.Draw(); }
 
   const TimingData* pTiming = &m_pPlayerState->GetDisplayedTiming();
   const std::vector<TimingSegment*>* segs[NUM_TimingSegmentType];
@@ -907,8 +904,9 @@ void NoteField::DrawPrimitives() {
       m_pPlayerState->m_PlayerNumber != GAMESTATE->GetMasterPlayerNumber();
 
   // Draw beat bars
-  if ((GAMESTATE->IsEditing() || m_bShowBeatBars || m_textMeasureNumber.GetVisible()) && pTiming != nullptr &&
-      !suppress_shared_overlays) {
+  if ((GAMESTATE->IsEditing() || m_bShowBeatBars ||
+       m_textMeasureNumber.GetVisible()) &&
+      pTiming != nullptr && !suppress_shared_overlays) {
     const std::vector<TimingSegment*>& tSigs = *segs[SEGMENT_TIME_SIG];
     int iMeasureIndex = 0;
     for (size_t i = 0; i < tSigs.size(); i++) {
@@ -948,9 +946,9 @@ void NoteField::DrawPrimitives() {
     }
   }
 
-	if( GAMESTATE->IsEditing() && m_textMeasureNumber.GetVisible() == true && pTiming != nullptr)
-	{
-		ASSERT(GAMESTATE->m_pCurSong != nullptr);
+  if (GAMESTATE->IsEditing() && m_textMeasureNumber.GetVisible() == true &&
+      pTiming != nullptr) {
+    ASSERT(GAMESTATE->m_pCurSong != nullptr);
 
     const TimingData& timing = *pTiming;
 
@@ -1371,28 +1369,26 @@ class LunaNoteField : public Luna<NoteField> {
     return 0;
   }
 
-	static int ToggleMeasureNumber(T* p, lua_State* L)
-	{
-		p->ToggleMeasureNumber(BArg(1));
-		return 0;
-	}
+  static int ToggleMeasureNumber(T* p, lua_State* L) {
+    p->ToggleMeasureNumber(BArg(1));
+    return 0;
+  }
 
-	LunaNoteField()
-	{
-		ADD_METHOD(set_step_callback);
-		ADD_METHOD(set_set_pressed_callback);
-		ADD_METHOD(set_did_tap_note_callback);
-		ADD_METHOD(set_did_hold_note_callback);
-		ADD_METHOD(step);
-		ADD_METHOD(set_pressed);
-		ADD_METHOD(did_tap_note);
-		ADD_METHOD(did_hold_note);
-		ADD_METHOD(get_column_actors);
-		ADD_METHOD(GetBeatBars);
-		ADD_METHOD(SetBeatBars);
-		ADD_METHOD(SetBeatBarsAlpha);
-		ADD_METHOD(ToggleMeasureNumber);
-	}
+  LunaNoteField() {
+    ADD_METHOD(set_step_callback);
+    ADD_METHOD(set_set_pressed_callback);
+    ADD_METHOD(set_did_tap_note_callback);
+    ADD_METHOD(set_did_hold_note_callback);
+    ADD_METHOD(step);
+    ADD_METHOD(set_pressed);
+    ADD_METHOD(did_tap_note);
+    ADD_METHOD(did_hold_note);
+    ADD_METHOD(get_column_actors);
+    ADD_METHOD(GetBeatBars);
+    ADD_METHOD(SetBeatBars);
+    ADD_METHOD(SetBeatBarsAlpha);
+    ADD_METHOD(ToggleMeasureNumber);
+  }
 };
 
 LUA_REGISTER_DERIVED_CLASS(NoteField, ActorFrame)

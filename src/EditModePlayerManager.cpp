@@ -99,9 +99,11 @@ bool EditModePlayerManager::HandleGameplayInput(
     const int iCol =
         GAMESTATE->GetCurrentStyle(pn)->GameInputToColumn(input.GameI);
     if (iCol != -1) {
-      // Pass inputs for both players to Player 1 in routine style or if Both At Once is enabled.
+      // Pass inputs for both players to Player 1 in routine style or if Both At
+      // Once is enabled.
       if (GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-              ->m_StyleType == StyleType_TwoPlayersSharedSides || PREFSMAN->m_bBothAtOnce) {
+                  ->m_StyleType == StyleType_TwoPlayersSharedSides ||
+          PREFSMAN->m_bBothAtOnce) {
         (*players_[PLAYER_1])
             ->Step(
                 iCol, -1, input.DeviceI.ts, false, input.type == IET_RELEASE);
