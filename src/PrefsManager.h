@@ -187,7 +187,13 @@ class PrefsManager {
   Preference<bool> m_bMenuTimer;
 
   Preference<float> m_fLifeDifficultyScale;
-
+  /**
+   * Whether ratemod should affect playback speeds of FGChanges or not.
+   * Originally introduced in NotITG.
+   */
+  Preference<bool> m_bRateModsAffectTweens;
+  Preference<bool>
+      m_bBothAtOnce;  // Duplicates player inputs to all joined players
   // Whoever added these: Please add a comment saying what they do. -Chris
   Preference<int> m_iRegenComboAfterMiss;  // combo that must be met after a
                                            // Miss to regen life
@@ -266,14 +272,6 @@ class PrefsManager {
       m_fDebounceCoinInputTime;  // allow users to apply a distinct debounce to
                                  // coin input
   Preference<bool> m_bResetCoinsAtStartup;
-
-  /**
-   * Whether ratemod should affect playback speeds of FGChanges or not.
-   * Originally introduced in NotITG.
-   */
-  Preference<bool> m_bRateModsAffectTweens;
-  Preference<bool>
-      m_bBothAtOnce;  // Duplicates player inputs to all joined players
 
   // Number of seconds it takes for a button on the controller to release
   // after pressed.

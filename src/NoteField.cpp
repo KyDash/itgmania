@@ -886,7 +886,9 @@ void NoteField::DrawPrimitives() {
        m_FieldRenderArgs.draw_pixels_before_targets))
 
   // Draw Receptors
-  { cur->m_ReceptorArrowRow.Draw(); }
+  {
+    cur->m_ReceptorArrowRow.Draw();
+  }
 
   const TimingData* pTiming = &m_pPlayerState->GetDisplayedTiming();
   const std::vector<TimingSegment*>* segs[NUM_TimingSegmentType];
