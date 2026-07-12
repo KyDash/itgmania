@@ -58,7 +58,7 @@ const char* CodeNames[] = {
     "CloseCurrentFolder",
     "PrevOptionsList",
     "NextOptionsList",
-    "OperatorMenu"
+    "OperatorMenu",
     "BothAtOnce"};
 XToString(Code);
 
